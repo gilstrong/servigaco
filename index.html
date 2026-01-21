@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Calculadora de Tesis</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="container">
+
+
+    <!-- Formulario -->
+    <div class="form-card">
+      <img src="logo.png" alt="Logo Empresa" style="max-height:80px; object-fit:contain;">
+  
+    
+
+  <h2>Calculadora de Tesis</h2>
+
+
+      <label>Tamaño de papel</label>
+      <select id="tamano">
+        <option value="carta">Carta (8.5 x 11)</option>
+        <option value="tabloide">11 x 17</option>
+      </select>
+
+      <div id="alertaTabloide" class="alerta">
+        ⚠️ 11×17 solo disponible en papel satinado con empastado vinil.
+      </div>
+
+      <label>Tipo de papel</label>
+      <select id="papel">
+        <option value="bond">Bond</option>
+        <option value="hilo">Hilo</option>
+        <option value="satinado">Satinado</option>
+      </select>
+
+      <div id="bnColorSection">
+        <label>Páginas Blanco y Negro</label>
+        <input type="number" id="bn" min="0" />
+        <label>Páginas a Color</label>
+        <input type="number" id="color" min="0" />
+      </div>
+
+      <div id="soloPaginas">
+        <label>Total de páginas</label>
+        <input type="number" id="paginas" min="1" />
+      </div>
+
+      <label>Cantidad de tomos</label>
+      <input type="number" id="tomos" value="1" min="1" />
+
+      <label>Tipo de empastado</label>
+      <select id="tipoEmpastado">
+        <option value="tapa_dura">Tapa dura</option>
+        <option value="vinil">Vinil</option>
+      </select>
+
+      <div id="colorTapaSection">
+        <label>Color de tapa (tapa dura)</label>
+        <select id="colorTapa">
+          <option value="beige">Beige</option>
+          <option value="morado">Morado</option>
+          <option value="azul_marino">Azul marino</option>
+          <option value="azul_cielo">Azul cielo</option>
+          <option value="rojo">Rojo</option>
+          <option value="verde_botella">Verde botella</option>
+          <option value="amarillo_medicina">Amarillo medicina</option>
+        </select>
+      </div>
+
+      <label>¿Lleva lomo?</label>
+      <select id="lomo"><option value="no">No</option><option value="si">Sí</option></select>
+
+      <label>¿Lleva CD?</label>
+      <select id="llevaCd"><option value="no">No</option><option value="si">Sí</option></select>
+
+      <div id="cdSection">
+        <label>Cantidad de CD</label>
+        <input type="number" id="cantidadCd" min="1" />
+      </div>
+
+      <button id="btnCalcular">Calcular total</button>
+      <button class="pdf" id="btnGenerar">Generar cotización</button>
+      <button class="sec" id="btnReiniciar">Reiniciar</button>
+
+      <div class="resultado" id="resultado"></div>
+
+      <div class="tiempo-entrega">
+        ⏰ Tiempo de entrega: <span id="tiempoEntrega">6 horas para tapa dura, si es después de las 12 se entrega al día siguiente; 24 horas para vinil.</span>
+      </div>
+    </div>
+
+    <!-- Botón para mostrar tabla -->
+    <button class="sec" id="btnMostrarTabla">Ver precios y detalles</button>
+
+    <!-- Tabla de precios -->
+    <div class="tabla-precios" id="tablaPrecios">
+      <h3>📋 Precios y detalles</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Concepto</th>
+            <th>Detalle</th>
+            <th>Precio (RD$)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Bond</td><td>B/N</td><td>6 / pág.</td></tr>
+          <tr><td>Bond</td><td>Color</td><td>12 / pág.</td></tr>
+          <tr><td>Hilo</td><td>B/N</td><td>8 / pág.</td></tr>
+          <tr><td>Hilo</td><td>Color</td><td>15 / pág.</td></tr>
+          <tr><td>Satinado (Carta)</td><td>B/N o Color</td><td>25 / pág.</td></tr>
+          <tr><td>Satinado (11×17)</td><td>B/N o Color</td><td>45 / pág.</td></tr>
+          <tr><td>Empastado Tapa dura</td><td>Carta (según color)</td><td>500-600</td></tr>
+          <tr><td>Empastado Vinil</td><td>Carta</td><td>1200</td></tr>
+          <tr><td>Empastado Vinil</td><td>11×17</td><td>1500</td></tr>
+          <tr><td>Lomo</td><td>Por tomo</td><td>200</td></tr>
+          <tr><td>CD rotulado</td><td>Por unidad</td><td>200</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
