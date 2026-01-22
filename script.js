@@ -250,34 +250,86 @@ function imprimir() {
   }, 500);
 }
 
-// COMPARTIR PDF (MÓVIL)
 async function compartirPDFMovil() {
-  if (!ultimaCotizacion) return alert('Calcule primero la cotización');
+  if (!ultimaCotizacion) {
+    alert('Calcule primero la cotización');
+    return;
+  }
 
-  const contenedor = document.createElement('div');
-  contenedor.innerHTML = ultimaCotizacion;
-  contenedor.style.width = '210mm';
-  document.body.appendChild(contenedor);
+  // CONTENEDOR REAL EN DOM
+  const wrapper = document.createElement('div');
+  wrapper.style.position = 'fixed';
+  wrapper.style.top = '0';
+  wrapper.style.left = '0';
+  wrapper.style.width = '210mm'; // A4 real
+  wrapper.style.minHeight = '297mm';
+  wrapper.style.background = '#fff';
+  wrapper.style.zIndex = '9999';
+  wrapper.style.padding = '15mm';
+  wrapper.innerHTML = ultimaCotizacion;
+
+  document.body.appendChild(wrapper);
+
+  // ESPERAR IMÁGENES (logos + bancos)
+  const imgs = wrapper.querySelectorAll('img');
+  await Promise.all(
+    Array.from(imgs).map(img =>
+      img.complete
+        ? Promise.resolve()
+        : new Promise(res => (img.onload = img.onerror = res))
+    )
+  );
 
   try {
-    const blob = await html2pdf().from(contenedor).set({
-      margin: 10,
-      html2canvas: { scale: 2, useCORS: true },
-      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-    }).outputPdf('blob');
+    const blob = await html2pdf()
+      .from(wrapper)
+      .set({
+        margin: 10,
+        filename: 'cotizacion_tesis.pdf',
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: {
+          scale: 2,
+          useCORS: true,
+          backgroundColor: '#ffffff'
+        },
+        jsPDF: {
+          unit: 'mm',
+          format: 'a4',
+          orientation: 'portrait'
+        }
+      })
+      .outputPdf('blob');
 
-    const file = new File([blob], 'cotizacion_tesis.pdf', { type: 'application/pdf' });
+    const file = new File([blob], 'cotizacion_tesis.pdf', {
+      type: 'application/pdf'
+    });
 
+    // COMPARTIR (Android / iOS)
     if (navigator.canShare && navigator.canShare({ files: [file] })) {
-      await navigator.share({ files: [file], title: 'Cotización de Tesis' });
+      await navigator.share({
+        title: 'Cotización de Tesis',
+        text: 'Adjunto cotización en PDF',
+        files: [file]
+      });
     } else {
+      // FALLBACK DESCARGA
       const url = URL.createObjectURL(blob);
-      window.open(url);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'cotizacion_tesis.pdf';
+      a.click();
+      URL.revokeObjectURL(url);
     }
+
+  } catch (err) {
+    console.error(err);
+    alert('No se pudo generar la cotización');
   } finally {
-    document.body.removeChild(contenedor);
+    document.body.removeChild(wrapper);
   }
 }
+
+
 
 // INICIAL
 tipoEmpEl.value = 'tapa_dura';
