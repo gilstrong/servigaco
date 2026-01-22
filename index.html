@@ -3,21 +3,28 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
   <title>Calculadora de Tesis</title>
+
+  <!-- ESTILOS -->
   <link rel="stylesheet" href="style.css" />
+
+  <!-- FAVICON -->
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/icono.png">
+  <link rel="shortcut icon" href="assets/icono.png">
+
+  <!-- HTML2PDF (OBLIGATORIO PARA COMPARTIR PDF) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
+
 <body>
   <div class="container">
 
-
-    <!-- Formulario -->
+    <!-- FORMULARIO -->
     <div class="form-card">
-      <img src="logo.png" alt="Logo Empresa" style="max-height:80px; object-fit:contain;">
-  
-    
+      <img src="logo.png" alt="Logo Empresa" class="logo-form">
 
-  <h2>Calculadora de Tesis</h2>
-
+      <h2>Calculadora de Tesis</h2>
 
       <label>Tamaño de papel</label>
       <select id="tamano">
@@ -67,35 +74,51 @@
           <option value="rojo">Rojo</option>
           <option value="verde_botella">Verde botella</option>
           <option value="amarillo_medicina">Amarillo medicina</option>
+          <option value="blanco">Blanco</option>
         </select>
       </div>
 
       <label>¿Lleva lomo?</label>
-      <select id="lomo"><option value="no">No</option><option value="si">Sí</option></select>
+      <select id="lomo">
+        <option value="no">No</option>
+        <option value="si">Sí</option>
+      </select>
 
       <label>¿Lleva CD?</label>
-      <select id="llevaCd"><option value="no">No</option><option value="si">Sí</option></select>
+      <select id="llevaCd">
+        <option value="no">No</option>
+        <option value="si">Sí</option>
+      </select>
 
       <div id="cdSection">
         <label>Cantidad de CD</label>
         <input type="number" id="cantidadCd" min="1" />
       </div>
 
+      <!-- BOTONES -->
       <button id="btnCalcular">Calcular total</button>
-      <button class="pdf" id="btnGenerar">Generar cotización</button>
+
+      <button class="pdf" id="btnGenerar">🖨️ Imprimir</button>
+
+      <button class="pdf" id="btnCompartir">📤 Compartir PDF</button>
+
       <button class="sec" id="btnReiniciar">Reiniciar</button>
 
+      <!-- RESULTADO -->
       <div class="resultado" id="resultado"></div>
 
       <div class="tiempo-entrega">
-        ⏰ Tiempo de entrega: <span id="tiempoEntrega">6 horas para tapa dura, si es después de las 12 se entrega al día siguiente; 24 horas para vinil.</span>
+        ⏰ Tiempo de entrega:
+        <span>
+          6 horas para tapa dura (después de las 12 se entrega al día siguiente);
+          24 horas para vinil.
+        </span>
       </div>
     </div>
 
-    <!-- Botón para mostrar tabla -->
+    <!-- TABLA DE PRECIOS -->
     <button class="sec" id="btnMostrarTabla">Ver precios y detalles</button>
 
-    <!-- Tabla de precios -->
     <div class="tabla-precios" id="tablaPrecios">
       <h3>📋 Precios y detalles</h3>
       <table>
@@ -113,10 +136,10 @@
           <tr><td>Hilo</td><td>Color</td><td>15 / pág.</td></tr>
           <tr><td>Satinado (Carta)</td><td>B/N o Color</td><td>25 / pág.</td></tr>
           <tr><td>Satinado (11×17)</td><td>B/N o Color</td><td>45 / pág.</td></tr>
-          <tr><td>Empastado Tapa dura</td><td>Carta (según color)</td><td>500-600</td></tr>
+          <tr><td>Empastado Tapa dura</td><td>Carta</td><td>500–600</td></tr>
           <tr><td>Empastado Vinil</td><td>Carta</td><td>1200</td></tr>
           <tr><td>Empastado Vinil</td><td>11×17</td><td>1500</td></tr>
-          <tr><td>Lomo</td><td>Por tomo</td><td>200</td></tr>
+          <tr><td>Lomo</td><td>Por tomo</td><td>50</td></tr>
           <tr><td>CD rotulado</td><td>Por unidad</td><td>200</td></tr>
         </tbody>
       </table>
@@ -124,6 +147,7 @@
 
   </div>
 
+  <!-- SCRIPT PRINCIPAL -->
   <script src="script.js"></script>
 </body>
 </html>
