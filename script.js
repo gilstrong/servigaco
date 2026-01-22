@@ -33,7 +33,6 @@ const BLOQUE_CUENTAS = `
   </div>
 `;
 
-
 function nombreColor(color) {
   return color.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
 }
@@ -55,7 +54,9 @@ const resultadoEl = document.getElementById('resultado');
 
 const btnCalcular = document.getElementById('btnCalcular');
 const btnGenerar = document.getElementById('btnGenerar');
+const btnCompartir = document.getElementById('btnCompartir');
 const btnReiniciar = document.getElementById('btnReiniciar');
+
 const btnMostrarTabla = document.getElementById('btnMostrarTabla');
 const tablaPrecios = document.getElementById('tablaPrecios');
 
@@ -72,6 +73,7 @@ llevaCd.addEventListener('change', () => {
 
 btnCalcular.addEventListener('click', calcular);
 btnGenerar.addEventListener('click', imprimir);
+btnCompartir.addEventListener('click', compartirPDFMovil);
 btnReiniciar.addEventListener('click', reiniciar);
 
 if (btnMostrarTabla) {
@@ -86,34 +88,25 @@ function actualizarVista() {
 
   if (tamano === 'tabloide') {
     alerta.style.display = 'block';
-
-    // Forzar papel
     papelEl.value = 'satinado';
     papelEl.disabled = true;
-
-    // Forzar empastado
     tipoEmpEl.value = 'vinil';
     tipoEmpEl.disabled = true;
-
   } else {
     alerta.style.display = 'none';
-
     papelEl.disabled = false;
     tipoEmpEl.disabled = false;
   }
 
   const esSatinado = papelEl.value === 'satinado';
-
   bnColorSection.style.display = esSatinado ? 'none' : 'block';
   soloPaginas.style.display = esSatinado ? 'block' : 'none';
 
-  // 🔥 ESTA ES LA CLAVE DEL COLOR
   colorTapaSection.style.display =
     tipoEmpEl.value === 'tapa_dura' && tamano === 'carta'
       ? 'block'
       : 'none';
 }
-
 
 // CALCULAR
 function calcular() {
@@ -174,10 +167,8 @@ function calcular() {
       <td>RD$${cdVal}</td>
     </tr>` : '';
 
-    ultimaCotizacion = `
+  ultimaCotizacion = `
     <div class="cotizacion">
-    
-      <!-- ENCABEZADO -->
       <div class="cotizacion-header">
         <img src="logo.png" class="logo">
         <div class="empresa-info">
@@ -185,8 +176,7 @@ function calcular() {
           <p>ServiGaco<br>Tel: 809-682-1075</p>
         </div>
       </div>
-    
-      <!-- TABLA DE CONCEPTOS -->
+
       <table class="tabla-cotizacion">
         <thead>
           <tr>
@@ -198,7 +188,6 @@ function calcular() {
           </tr>
         </thead>
         <tbody>
-    
           <tr>
             <td><strong>Impresión</strong></td>
             <td>${detalleImpresion}</td>
@@ -206,46 +195,38 @@ function calcular() {
             <td class="right">RD$${impresion}</td>
             <td class="right">RD$${impresion * tomos}</td>
           </tr>
-    
+
           <tr>
             <td><strong>Empastado</strong></td>
-            <td>
-              ${tipoEmp === 'tapa_dura'
-                ? `Tapa dura (${nombreColor(colorTapa)})`
-                : 'Vinil'}
-            </td>
+            <td>${tipoEmp === 'tapa_dura'
+              ? `Tapa dura (${nombreColor(colorTapa)})`
+              : 'Vinil'}</td>
             <td class="center">${tomos}</td>
-            <td class="right">
-              RD$${tipoEmp === 'vinil'
-                ? VINIL[tamanoEl.value]
-                : TAPA_DURA[colorTapa]}
-            </td>
+            <td class="right">RD$${tipoEmp === 'vinil'
+              ? VINIL[tamanoEl.value]
+              : TAPA_DURA[colorTapa]}</td>
             <td class="right">RD$${empastado}</td>
           </tr>
-    
-          ${filaLomo || ''}
-          ${filaCD || ''}
-    
+
+          ${filaLomo}
+          ${filaCD}
         </tbody>
       </table>
-    
-      <!-- TABLA TOTAL -->
+
       <table class="tabla-total">
         <tr>
           <td><strong>Total General</strong></td>
           <td class="right"><strong>RD$${total}</strong></td>
-          
         </tr>
       </table>
 
       ${BLOQUE_CUENTAS}
-      
-          <div class="tiempo-entrega">
-        ⏰ Tiempo de entrega: <span id="tiempoEntrega">6 horas para tapa dura, si es después de las 12 se entrega al día siguiente; 24 horas para vinil.</span>
+
+      <div class="tiempo-entrega">
+        ⏰ Tiempo de entrega: 6 horas tapa dura / 24 horas vinil.
       </div>
     </div>
-    `;
-    
+  `;
 
   resultadoEl.innerHTML = ultimaCotizacion;
 }
@@ -254,55 +235,57 @@ function calcular() {
 function imprimir() {
   if (!ultimaCotizacion) return alert('Calcule primero la cotización');
 
-  // Copiamos TODO el <head> (links + estilos)
   const headHTML = document.head.innerHTML;
-
   const w = window.open('', '', 'width=1000,height=700');
-  w.document.open();
+
   w.document.write(`
-    <!DOCTYPE html>
     <html>
-      <head>
-        ${headHTML}
-      </head>
-      <body>
-        ${ultimaCotizacion}
-      </body>
+      <head>${headHTML}</head>
+      <body>${ultimaCotizacion}</body>
     </html>
   `);
-  w.document.close();
 
-  // Espera mínima para que carguen los estilos
   setTimeout(() => {
-    w.focus();
     w.print();
   }, 500);
 }
 
+// COMPARTIR PDF (MÓVIL)
+async function compartirPDFMovil() {
+  if (!ultimaCotizacion) return alert('Calcule primero la cotización');
 
+  const contenedor = document.createElement('div');
+  contenedor.innerHTML = ultimaCotizacion;
+  contenedor.style.width = '210mm';
+  document.body.appendChild(contenedor);
 
+  try {
+    const blob = await html2pdf().from(contenedor).set({
+      margin: 10,
+      html2canvas: { scale: 2, useCORS: true },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    }).outputPdf('blob');
+
+    const file = new File([blob], 'cotizacion_tesis.pdf', { type: 'application/pdf' });
+
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      await navigator.share({ files: [file], title: 'Cotización de Tesis' });
+    } else {
+      const url = URL.createObjectURL(blob);
+      window.open(url);
+    }
+  } finally {
+    document.body.removeChild(contenedor);
+  }
+}
+
+// INICIAL
 tipoEmpEl.value = 'tapa_dura';
 actualizarVista();
 
-
 function reiniciar() {
-  // Limpia inputs
   document.querySelector('form')?.reset();
-
-  // Oculta secciones dinámicas
-  cdSection.style.display = 'none';
-  bnColorSection.style.display = 'block';
-  soloPaginas.style.display = 'none';
-  colorTapaSection.style.display = 'block';
-
-  // Limpia resultado
   resultadoEl.innerHTML = '';
   ultimaCotizacion = '';
-
-  // Restablece selects
-  papelEl.disabled = false;
-  tipoEmpEl.disabled = false;
-
   actualizarVista();
 }
-
