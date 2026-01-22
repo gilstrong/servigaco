@@ -414,10 +414,33 @@ button.sec:hover {
 
 /* ===== IMPRESIÓN ===== */
 @media print {
+  @page {
+    size: letter;
+    margin: 12mm;
+  }
+
   body {
-    background: #fff;
+    margin: 0;
     padding: 0;
   }
+
+  .cotizacion {
+    width: 100%;
+    max-width: 100%;
+    margin: 0 auto;
+    transform: scale(1.05);
+    transform-origin: top center;
+  }
+
+  .cuentas-pago {
+    margin-top: 20px;
+  }
+
+  .cuentas-pago img {
+    border: 1px solid #ccc;
+    box-shadow: none;
+  }
+
 
   .form-card,
   button {
@@ -440,4 +463,29 @@ button.sec:hover {
     color: #000 !important;
   }
 }
+
+.cuentas-pago {
+  margin-top: 28px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+}
+
+.img-cuenta {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* Tarjeta */
+.cuentas-pago img {
+  background: #ffffff;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+}
+
+
+
 

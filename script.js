@@ -25,6 +25,15 @@ const VINIL = {
   tabloide: 1500
 };
 
+const BLOQUE_CUENTAS = `
+  <div class="cuentas-pago">
+    <img src="bhd.jpg" alt="Cuenta BHD" class="img-cuenta">
+    <img src="popular.jpg" alt="Cuenta Popular" class="img-cuenta">
+    <img src="banreservas.jpg" alt="Cuenta Banreservas" class="img-cuenta">
+  </div>
+`;
+
+
 function nombreColor(color) {
   return color.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
 }
@@ -225,9 +234,15 @@ function calcular() {
         <tr>
           <td><strong>Total General</strong></td>
           <td class="right"><strong>RD$${total}</strong></td>
+          
         </tr>
       </table>
-    
+
+      ${BLOQUE_CUENTAS}
+      
+          <div class="tiempo-entrega">
+        ⏰ Tiempo de entrega: <span id="tiempoEntrega">6 horas para tapa dura, si es después de las 12 se entrega al día siguiente; 24 horas para vinil.</span>
+      </div>
     </div>
     `;
     
