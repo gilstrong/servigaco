@@ -256,41 +256,44 @@ async function compartirPDFMovil() {
     return;
   }
 
-  // CONTENEDOR REAL EN DOM
+  // CONTENEDOR VISIBLE Y NORMAL
   const wrapper = document.createElement('div');
-  wrapper.style.position = 'fixed';
-  wrapper.style.top = '0';
+  wrapper.style.position = 'absolute';
   wrapper.style.left = '0';
-  wrapper.style.width = '210mm'; // A4 real
-  wrapper.style.minHeight = '297mm';
-  wrapper.style.background = '#fff';
-  wrapper.style.zIndex = '9999';
+  wrapper.style.top = '0';
+  wrapper.style.width = '210mm';
+  wrapper.style.background = '#ffffff';
   wrapper.style.padding = '15mm';
-  wrapper.innerHTML = ultimaCotizacion;
+  wrapper.style.zIndex = '9999';
+  wrapper.style.display = 'block';
 
+  wrapper.innerHTML = ultimaCotizacion;
   document.body.appendChild(wrapper);
 
-  // ESPERAR IMÁGENES (logos + bancos)
+  // Forzar repaint (MUY IMPORTANTE en móvil)
+  await new Promise(res => setTimeout(res, 300));
+
+  // Esperar imágenes
   const imgs = wrapper.querySelectorAll('img');
   await Promise.all(
-    Array.from(imgs).map(img =>
+    [...imgs].map(img =>
       img.complete
         ? Promise.resolve()
-        : new Promise(res => (img.onload = img.onerror = res))
+        : new Promise(r => (img.onload = img.onerror = r))
     )
   );
 
   try {
-    const blob = await html2pdf()
-      .from(wrapper)
+    const pdf = await html2pdf()
       .set({
         margin: 10,
         filename: 'cotizacion_tesis.pdf',
         image: { type: 'jpeg', quality: 0.98 },
         html2canvas: {
           scale: 2,
+          backgroundColor: '#ffffff',
           useCORS: true,
-          backgroundColor: '#ffffff'
+          logging: false
         },
         jsPDF: {
           unit: 'mm',
@@ -298,13 +301,14 @@ async function compartirPDFMovil() {
           orientation: 'portrait'
         }
       })
+      .from(wrapper)
       .outputPdf('blob');
 
-    const file = new File([blob], 'cotizacion_tesis.pdf', {
+    const file = new File([pdf], 'cotizacion_tesis.pdf', {
       type: 'application/pdf'
     });
 
-    // COMPARTIR (Android / iOS)
+    // Share nativo móvil
     if (navigator.canShare && navigator.canShare({ files: [file] })) {
       await navigator.share({
         title: 'Cotización de Tesis',
@@ -312,8 +316,8 @@ async function compartirPDFMovil() {
         files: [file]
       });
     } else {
-      // FALLBACK DESCARGA
-      const url = URL.createObjectURL(blob);
+      // Fallback descarga
+      const url = URL.createObjectURL(pdf);
       const a = document.createElement('a');
       a.href = url;
       a.download = 'cotizacion_tesis.pdf';
@@ -321,13 +325,14 @@ async function compartirPDFMovil() {
       URL.revokeObjectURL(url);
     }
 
-  } catch (err) {
-    console.error(err);
-    alert('No se pudo generar la cotización');
+  } catch (e) {
+    console.error(e);
+    alert('Error al generar la cotización');
   } finally {
     document.body.removeChild(wrapper);
   }
 }
+
 
 
 
