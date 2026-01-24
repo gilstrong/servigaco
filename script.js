@@ -37,6 +37,11 @@ function nombreColor(color) {
   return color.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
 }
 
+// 🔴 REDONDEO A 5 (CLAVE)
+function redondearA5(num) {
+  return Math.round(num / 5) * 5;
+}
+
 // ELEMENTOS
 const tamanoEl = document.getElementById('tamano');
 const papelEl = document.getElementById('papel');
@@ -149,6 +154,9 @@ function calcular() {
 
   const total = impresion * tomos + empastado + lomoVal + cdVal;
 
+  // ✅ APLICAR REDONDEO (SIN TOCAR EL CÁLCULO ORIGINAL)
+  const totalRedondeado = redondearA5(total);
+
   let filaLomo = lomo ? `
     <tr>
       <td>Lomo</td>
@@ -216,7 +224,7 @@ function calcular() {
       <table class="tabla-total">
         <tr>
           <td><strong>Total General</strong></td>
-          <td class="right"><strong>RD$${total}</strong></td>
+          <td class="right"><strong>RD$${totalRedondeado}</strong></td>
         </tr>
       </table>
 
@@ -256,7 +264,6 @@ async function compartirPDFMovil() {
     return;
   }
 
-  // CONTENEDOR VISIBLE Y NORMAL
   const wrapper = document.createElement('div');
   wrapper.style.position = 'absolute';
   wrapper.style.left = '0';
@@ -270,10 +277,8 @@ async function compartirPDFMovil() {
   wrapper.innerHTML = ultimaCotizacion;
   document.body.appendChild(wrapper);
 
-  // Forzar repaint (MUY IMPORTANTE en móvil)
   await new Promise(res => setTimeout(res, 300));
 
-  // Esperar imágenes
   const imgs = wrapper.querySelectorAll('img');
   await Promise.all(
     [...imgs].map(img =>
@@ -308,7 +313,6 @@ async function compartirPDFMovil() {
       type: 'application/pdf'
     });
 
-    // Share nativo móvil
     if (navigator.canShare && navigator.canShare({ files: [file] })) {
       await navigator.share({
         title: 'Cotización de Tesis',
@@ -316,7 +320,6 @@ async function compartirPDFMovil() {
         files: [file]
       });
     } else {
-      // Fallback descarga
       const url = URL.createObjectURL(pdf);
       const a = document.createElement('a');
       a.href = url;
@@ -333,16 +336,29 @@ async function compartirPDFMovil() {
   }
 }
 
-
-
-
 // INICIAL
 tipoEmpEl.value = 'tapa_dura';
 actualizarVista();
 
 function reiniciar() {
-  document.querySelector('form')?.reset();
+  document.getElementById('bn').value = '';
+  document.getElementById('color').value = '';
+  document.getElementById('paginas').value = '';
+  document.getElementById('tomos').value = 1;
+  document.getElementById('cantidadCd').value = '';
+
+  tamanoEl.value = 'carta';
+  papelEl.value = 'bond';
+  tipoEmpEl.value = 'tapa_dura';
+  document.getElementById('colorTapa').value = 'beige';
+  document.getElementById('lomo').value = 'no';
+  llevaCd.value = 'no';
+
+  cdSection.style.display = 'none';
+  alerta.style.display = 'none';
+
   resultadoEl.innerHTML = '';
   ultimaCotizacion = '';
+
   actualizarVista();
 }
