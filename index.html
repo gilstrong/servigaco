@@ -3,150 +3,384 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-  <title>Calculadora de Tesis</title>
+  <meta name="description" content="Calculadora profesional para cotización de tesis con empastado y opciones personalizadas" />
+  <meta name="keywords" content="calculadora tesis, empastado, cotización, impresión" />
+  <meta name="author" content="Tu Empresa" />
+  
+  <title>Calculadora de Tesis - Cotización Profesional</title>
 
   <!-- ESTILOS -->
   <link rel="stylesheet" href="style.css" />
 
   <!-- FAVICON -->
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/icono.png">
-  <link rel="shortcut icon" href="assets/icono.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/icono.png" />
+  <link rel="shortcut icon" href="assets/icono.png" />
 
-  <!-- HTML2PDF (OBLIGATORIO PARA COMPARTIR PDF) -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <!-- HTML2PDF (Solo una vez) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" defer></script>
 </head>
 
+
 <body>
-  <div class="container">
+  <main class="container">
+    
 
-    <!-- FORMULARIO -->
-    <div class="form-card">
-      <img src="logo.png" alt="Logo Empresa" class="logo-form">
+    <!-- ========================================
+         📝 SECCIÓN: CALCULADORA DE TESIS
+         ======================================== -->
+    <section class="form-card" aria-label="Formulario de cotización">
+      <!-- Logo -->
+      <figure class="logo-container">
+        <img src="logo.png" alt="Logo de la empresa" class="logo-form" width="150" height="80" />
+      </figure>
 
-      <h2>Calculadora de Tesis</h2>
+      <!-- Título principal -->
+      <header>
+        <h1>Calculadora de Tesis</h1>
+      </header>
 
-      <label>Tamaño de papel</label>
-      <select id="tamano">
-        <option value="carta">Carta (8.5 x 11)</option>
-        <option value="tabloide">11 x 17</option>
-      </select>
+      
 
-      <div id="alertaTabloide" class="alerta">
-        ⚠️ 11×17 solo disponible en papel satinado con empastado vinil.
-      </div>
+      <!-- Formulario de cotización -->
+      <form id="formCotizacion" aria-label="Formulario de cálculo">
+        
+        <!-- Tamaño de papel -->
+        <div class="form-group">
+          <label for="tamano">
+            <span class="label-icon">📐</span>
+            Tamaño de papel
+          </label>
+          <select id="tamano" name="tamano" required aria-describedby="alertaTabloide">
+            <option value="carta">Carta (8.5 x 11)</option>
+            <option value="tabloide">11 x 17</option>
+          </select>
+        </div>
 
-      <label>Tipo de papel</label>
-      <select id="papel">
-        <option value="bond">Bond</option>
-        <option value="hilo">Hilo</option>
-        <option value="satinado">Satinado</option>
-      </select>
+        <!-- Alerta tamaño tabloide -->
+        <div id="alertaTabloide" class="alerta" role="alert" aria-live="polite">
+          <span class="alert-icon">⚠️</span>
+          11×17 solo disponible en papel satinado con empastado vinil.
+        </div>
 
-      <div id="bnColorSection">
-        <label>Páginas Blanco y Negro</label>
-        <input type="number" id="bn" min="0" />
-        <label>Páginas a Color</label>
-        <input type="number" id="color" min="0" />
-      </div>
+        <!-- Tipo de papel -->
+        <div class="form-group">
+          <label for="papel">
+            <span class="label-icon">📄</span>
+            Tipo de papel
+          </label>
+          <select id="papel" name="papel" required>
+            <option value="bond">Bond</option>
+            <option value="hilo">Hilo</option>
+            <option value="satinado">Satinado</option>
+          </select>
+        </div>
 
-      <div id="soloPaginas">
-        <label>Total de páginas</label>
-        <input type="number" id="paginas" min="1" />
-      </div>
+        <!-- Páginas B/N y Color -->
+        <div id="bnColorSection" class="form-section">
+          <div class="form-group">
+            <label for="bn">
+              <span class="label-icon">⚫</span>
+              Páginas Blanco y Negro
+            </label>
+            <input 
+              type="number" 
+              id="bn" 
+              name="bn"
+              min="0" 
+              value="0"
+              placeholder="Ej: 50"
+              aria-label="Cantidad de páginas en blanco y negro"
+            />
+          </div>
 
-      <label>Cantidad de tomos</label>
-      <input type="number" id="tomos" value="1" min="1" />
+          <div class="form-group">
+            <label for="color">
+              <span class="label-icon">🎨</span>
+              Páginas a Color
+            </label>
+            <input 
+              type="number" 
+              id="color" 
+              name="color"
+              min="0" 
+              value="0"
+              placeholder="Ej: 10"
+              aria-label="Cantidad de páginas a color"
+            />
+          </div>
+        </div>
 
-      <label>Tipo de empastado</label>
-      <select id="tipoEmpastado">
-        <option value="tapa_dura">Tapa dura</option>
-        <option value="vinil">Vinil</option>
-      </select>
+        <!-- Total de páginas (satinado) -->
+        <div id="soloPaginas" class="form-section">
+          <div class="form-group">
+            <label for="paginas">
+              <span class="label-icon">📊</span>
+              Total de páginas
+            </label>
+            <input 
+              type="number" 
+              id="paginas" 
+              name="paginas"
+              min="1" 
+              value="1"
+              placeholder="Ej: 100"
+              aria-label="Total de páginas"
+            />
+          </div>
+        </div>
 
-      <div id="colorTapaSection">
-        <label>Color de tapa (tapa dura)</label>
-        <select id="colorTapa">
-          <option value="beige">Beige</option>
-          <option value="morado">Morado</option>
-          <option value="azul_marino">Azul marino</option>
-          <option value="azul_cielo">Azul cielo</option>
-          <option value="rojo">Rojo</option>
-          <option value="verde_botella">Verde botella</option>
-          <option value="amarillo_medicina">Amarillo medicina</option>
-          <option value="blanco">Blanco</option>
-        </select>
-      </div>
+        <!-- Cantidad de tomos -->
+        <div class="form-group">
+          <label for="tomos">
+            <span class="label-icon">📚</span>
+            Cantidad de tomos
+          </label>
+          <input 
+            type="number" 
+            id="tomos" 
+            name="tomos"
+            value="1" 
+            min="1" 
+            max="10"
+            required
+            aria-label="Número de tomos a empastar"
+          />
+        </div>
 
-      <label>¿Lleva lomo?</label>
-      <select id="lomo">
-        <option value="no">No</option>
-        <option value="si">Sí</option>
-      </select>
+        <!-- Tipo de empastado -->
+        <div class="form-group">
+          <label for="tipoEmpastado">
+            <span class="label-icon">📕</span>
+            Tipo de empastado
+          </label>
+          <select id="tipoEmpastado" name="tipoEmpastado" required>
+            <option value="tapa_dura">Tapa dura</option>
+            <option value="vinil">Vinil</option>
+          </select>
+        </div>
 
-      <label>¿Lleva CD?</label>
-      <select id="llevaCd">
-        <option value="no">No</option>
-        <option value="si">Sí</option>
-      </select>
+        <!-- Color de tapa (solo tapa dura) -->
+        <div id="colorTapaSection" class="form-section">
+          <div class="form-group">
+            <label for="colorTapa">
+              <span class="label-icon">🎨</span>
+              Color de tapa
+            </label>
+            <select id="colorTapa" name="colorTapa">
+              <option value="beige">Beige</option>
+              <option value="morado">Morado</option>
+              <option value="azul_marino">Azul marino</option>
+              <option value="azul_cielo">Azul cielo</option>
+              <option value="rojo">Rojo</option>
+              <option value="verde_botella">Verde botella</option>
+              <option value="amarillo_medicina">Amarillo medicina</option>
+              <option value="blanco">Blanco</option>
+            </select>
+          </div>
+        </div>
 
-      <div id="cdSection">
-        <label>Cantidad de CD</label>
-        <input type="number" id="cantidadCd" min="1" />
-      </div>
+        <!-- ¿Lleva lomo? -->
+        <div class="form-group">
+          <label for="lomo">
+            <span class="label-icon">📏</span>
+            ¿Lleva lomo?
+          </label>
+          <select id="lomo" name="lomo">
+            <option value="no">No</option>
+            <option value="si">Sí</option>
+          </select>
+        </div>
 
-      <!-- BOTONES -->
-      <button id="btnCalcular">Calcular total</button>
+        <!-- ¿Lleva CD? -->
+        <div class="form-group">
+          <label for="llevaCd">
+            <span class="label-icon">💿</span>
+            ¿Lleva CD?
+          </label>
+          <select id="llevaCd" name="llevaCd">
+            <option value="no">No</option>
+            <option value="si">Sí</option>
+          </select>
+        </div>
 
-      <button class="pdf" id="btnGenerar">🖨️ Imprimir</button>
+        <!-- Cantidad de CD -->
+        <div id="cdSection" class="form-section">
+          <div class="form-group">
+            <label for="cantidadCd">
+              <span class="label-icon">💿</span>
+              Cantidad de CD
+            </label>
+            <input 
+              type="number" 
+              id="cantidadCd" 
+              name="cantidadCd"
+              min="1" 
+              max="10"
+              value="1"
+              aria-label="Número de CDs a incluir"
+            />
+          </div>
+        </div>
 
-      <button class="pdf" id="btnCompartir">📤 Compartir PDF</button>
+        <!-- Grupo de botones -->
+        <div class="button-group">
+          <button type="button" id="btnCalcular" class="btn btn-primary">
+            <span class="btn-icon">🧮</span>
+            Calcular Total
+          </button>
 
-      <button class="sec" id="btnReiniciar">Reiniciar</button>
+          <button type="button" id="btnGenerar" class="btn btn-print">
+            <span class="btn-icon">🖨️</span>
+            Imprimir
+          </button>
 
-      <!-- RESULTADO -->
-      <div class="resultado" id="resultado"></div>
+          <button type="button" id="btnCompartir" class="btn btn-share">
+            <span class="btn-icon">📤</span>
+            Compartir PDF
+          </button>
 
-      <div class="tiempo-entrega">
-        ⏰ Tiempo de entrega:
-        <span>
-          6 horas para tapa dura (después de las 12 se entrega al día siguiente);
-          24 horas para vinil.
-        </span>
-      </div>
+          <button type="button" id="btnReiniciar" class="btn btn-secondary">
+            <span class="btn-icon">🔄</span>
+            Reiniciar
+          </button>
+        </div>
+
+        <!-- Resultado del cálculo -->
+        <div class="resultado" id="resultado" role="status" aria-live="polite"></div>
+
+
+        
+
+      </form>
+    </section>
+
+    <!-- ========================================
+         💳 SECCIÓN: COTIZACIÓN GENERADA
+         ======================================== -->
+    <section id="cotizacionGenerada" class="cotizacion" style="display: none;">
+      <!-- Aquí se generará la cotización dinámicamente con JavaScript -->
+    </section>
+
+    <!-- ========================================
+         📋 SECCIÓN: TABLA DE PRECIOS
+         ======================================== -->
+    <div class="tabla-container">
+      <button 
+        type="button" 
+        id="btnMostrarTabla" 
+        class="btn btn-secondary btn-toggle"
+        aria-expanded="false"
+        aria-controls="tablaPrecios"
+      >
+        <span class="btn-icon">📋</span>
+        Ver precios y detalles
+      </button>
+
+      <section 
+        class="tabla-precios" 
+        id="tablaPrecios" 
+        aria-label="Tabla de precios y servicios"
+      >
+        <header class="tabla-header">
+          <h3>
+            <span class="tabla-icon">📋</span>
+            Precios y Detalles
+          </h3>
+          <p class="tabla-subtitle">Todos los precios están en pesos dominicanos (RD$)</p>
+        </header>
+
+        <div class="tabla-responsive">
+          <table>
+            <caption class="sr-only">Lista completa de precios por servicio</caption>
+            <thead>
+              <tr>
+                <th scope="col">Concepto</th>
+                <th scope="col">Detalle</th>
+                <th scope="col">Precio (RD$)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Papel Bond -->
+              <tr>
+                <td data-label="Concepto">Bond</td>
+                <td data-label="Detalle">B/N</td>
+                <td data-label="Precio">$6 / pág.</td>
+              </tr>
+              <tr>
+                <td data-label="Concepto">Bond</td>
+                <td data-label="Detalle">Color</td>
+                <td data-label="Precio">$12 / pág.</td>
+              </tr>
+
+              <!-- Papel Hilo -->
+              <tr>
+                <td data-label="Concepto">Hilo</td>
+                <td data-label="Detalle">B/N</td>
+                <td data-label="Precio">$8 / pág.</td>
+              </tr>
+              <tr>
+                <td data-label="Concepto">Hilo</td>
+                <td data-label="Detalle">Color</td>
+                <td data-label="Precio">$15 / pág.</td>
+              </tr>
+
+              <!-- Papel Satinado -->
+              <tr>
+                <td data-label="Concepto">Satinado (Carta)</td>
+                <td data-label="Detalle">B/N o Color</td>
+                <td data-label="Precio">$25 / pág.</td>
+              </tr>
+              <tr>
+                <td data-label="Concepto">Satinado (11×17)</td>
+                <td data-label="Detalle">B/N o Color</td>
+                <td data-label="Precio">$45 / pág.</td>
+              </tr>
+
+              <!-- Empastado Tapa Dura -->
+              <tr>
+                <td data-label="Concepto">Empastado Tapa Dura</td>
+                <td data-label="Detalle">Carta</td>
+                <td data-label="Precio">$500–600</td>
+              </tr>
+
+              <!-- Empastado Vinil -->
+              <tr>
+                <td data-label="Concepto">Empastado Vinil</td>
+                <td data-label="Detalle">Carta</td>
+                <td data-label="Precio">$1,200</td>
+              </tr>
+              <tr>
+                <td data-label="Concepto">Empastado Vinil</td>
+                <td data-label="Detalle">11×17</td>
+                <td data-label="Precio">$1,500</td>
+              </tr>
+
+              <!-- Extras -->
+              <tr>
+                <td data-label="Concepto">Lomo</td>
+                <td data-label="Detalle">Por tomo</td>
+                <td data-label="Precio">$50</td>
+              </tr>
+              <tr>
+                <td data-label="Concepto">CD rotulado</td>
+                <td data-label="Detalle">Por unidad</td>
+                <td data-label="Precio">$200</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <footer class="tabla-footer">
+          <p>
+            <span class="info-icon">ℹ️</span>
+            Los precios pueden variar según especificaciones especiales. 
+            Contáctanos para más información.
+          </p>
+        </footer>
+      </section>
     </div>
 
-    <!-- TABLA DE PRECIOS -->
-    <button class="sec" id="btnMostrarTabla">Ver precios y detalles</button>
-
-    <div class="tabla-precios" id="tablaPrecios">
-      <h3>📋 Precios y detalles</h3>
-      <table>
-        <thead>
-          <tr>
-            <th>Concepto</th>
-            <th>Detalle</th>
-            <th>Precio (RD$)</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr><td>Bond</td><td>B/N</td><td>6 / pág.</td></tr>
-          <tr><td>Bond</td><td>Color</td><td>12 / pág.</td></tr>
-          <tr><td>Hilo</td><td>B/N</td><td>8 / pág.</td></tr>
-          <tr><td>Hilo</td><td>Color</td><td>15 / pág.</td></tr>
-          <tr><td>Satinado (Carta)</td><td>B/N o Color</td><td>25 / pág.</td></tr>
-          <tr><td>Satinado (11×17)</td><td>B/N o Color</td><td>45 / pág.</td></tr>
-          <tr><td>Empastado Tapa dura</td><td>Carta</td><td>500–600</td></tr>
-          <tr><td>Empastado Vinil</td><td>Carta</td><td>1200</td></tr>
-          <tr><td>Empastado Vinil</td><td>11×17</td><td>1500</td></tr>
-          <tr><td>Lomo</td><td>Por tomo</td><td>50</td></tr>
-          <tr><td>CD rotulado</td><td>Por unidad</td><td>200</td></tr>
-        </tbody>
-      </table>
-    </div>
-
-  </div>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  </main>
 
   <!-- SCRIPT PRINCIPAL -->
   <script src="script.js"></script>
