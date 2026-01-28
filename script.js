@@ -36,22 +36,45 @@ const PRECIOS_SERVICIOS = {
   REDONDEO_MULTIPLO: 5
 };
 
+const BLOQUE_MENSAJE_PAGINA_SIGUIENTE = `
+  <div class="mensaje-pagina-siguiente">
+    <span class="flecha">⬇</span>
+    <span class="texto">
+      Debajo encontrarás las cuentas bancarias y el ejemplar del empastado
+    </span>
+  </div>
+`;
+
+
 const TIEMPO_ENTREGA = {
   TAPA_DURA: '6 horas',
   VINIL: '24 horas'
 };
+
+// ============================================
+// 🖼️ IMÁGENES DE EJEMPLARES POR COLOR
+// ============================================
+
+const IMAGEN_EJEMPLAR_TAPA = {
+  beige: 'beige.jpeg',
+  morado: 'morado.jpeg',
+  azul_marino: 'img/ejemplar-azul-marino.jpg',
+  azul_cielo: 'azulcielo.jpeg',
+  rojo: 'img/ejemplar-rojo.jpg',
+  verde_botella: 'img/ejemplar-verde-botella.jpg',
+  amarillo_medicina: 'img/ejemplar-amarillo-medicina.jpg',
+  blanco: 'img/ejemplar-blanco.jpg'
+};
+
 
 
 const BLOQUE_CUENTAS = `
   <div class="cuentas-pago">
     <img src="bhd.jpg" alt="Cuenta BHD" class="img-cuenta">
     <img src="popular.jpg" alt="Cuenta Popular" class="img-cuenta">
+    <img src="banreservas.jpg" alt="Cuenta Banreservas" class="img-cuenta">
   </div>
 
-  <div class="fila-final">
-    <div class="cuenta-banreservas">
-      <img src="banreservas.jpg" alt="Cuenta Banreservas" class="img-cuenta">
-    </div>
 
     <!-- AQUÍ va el tiempo de entrega -->
     {{TIEMPO_ENTREGA}}
@@ -283,6 +306,31 @@ function calcularEmpastado(tomos) {
 }
 
 /**
+ * Genera bloque visual del ejemplar según color de tapa
+ * @param {string} tipoEmp
+ * @param {string} colorTapa
+ * @returns {string}
+ */
+function generarBloqueEjemplar(tipoEmp, colorTapa) {
+  if (tipoEmp !== 'tapa_dura') return '';
+
+  const src = IMAGEN_EJEMPLAR_TAPA[colorTapa];
+  if (!src) return '';
+
+  return `
+    <div class="bloque-ejemplar">
+      <div class="bloque-ejemplar-header">
+        📘 Ejemplar – Tapa ${nombreColor(colorTapa)}
+      </div>
+      <div class="bloque-ejemplar-img">
+        <img src="${src}" alt="Ejemplar color ${colorTapa}">
+      </div>
+    </div>
+  `;
+}
+
+
+/**
  * Calcula servicios adicionales
  * @param {number} tomos - Cantidad de tomos
  * @returns {Object} {lomoVal, cdVal, lomo, cd, cantidadCd}
@@ -357,9 +405,12 @@ function generarHTMLCotizacion(datos) {
       ${generarEncabezado()}
       ${generarTablaDetalle(datos)}
       ${generarTablaTotal(datos.totalRedondeado)}
+      ${BLOQUE_MENSAJE_PAGINA_SIGUIENTE}
+      ${generarBloqueEjemplar(datos.tipoEmp, datos.colorTapa)}
       ${BLOQUE_CUENTAS.replace(
         '{{TIEMPO_ENTREGA}}',
         generarTiempoEntrega(datos.tipoEmp)
+      
       )}
     </div>
   `;
@@ -514,7 +565,7 @@ function generarTiempoEntrega(tipoEmp) {
     
   return `
     <div class="tiempo-entrega">
-      ⏰ Tiempo de entrega: ${tiempo} tapa dura / ${TIEMPO_ENTREGA.VINIL} vinil.
+      ⏰ Tiempo de entrega: en tapa dura ${tiempo}, si es apartir de las 12:00 PM se entrega al otro dia / ${TIEMPO_ENTREGA.VINIL} vinil.
     </div>
   `;
 }
@@ -798,3 +849,4 @@ if (document.readyState === 'loading') {
 } else {
   inicializar();
 }
+
