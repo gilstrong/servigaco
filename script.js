@@ -416,6 +416,11 @@ function generarHTMLCotizacion(datos) {
   `;
 }
 
+function formatearMonto(valor) {
+  return Number(valor).toLocaleString('en-US');
+}
+
+
 
 /**
  * Genera el encabezado de la cotización
@@ -474,8 +479,9 @@ function generarFilaImpresion(datos) {
       <td><strong>Impresión</strong></td>
       <td>${datos.detalleImpresion}</td>
       <td class="center">${datos.tomos}</td>
-      <td class="right">RD$${datos.impresion}</td>
-      <td class="right">RD$${datos.impresion * datos.tomos}</td>
+      <td class="right">RD$${formatearMonto(datos.impresion)}</td>
+      <td class="right">RD$${formatearMonto(datos.impresion * datos.tomos)}</td>
+
     </tr>
   `;
 }
@@ -495,8 +501,9 @@ function generarFilaEmpastado(datos) {
       <td><strong>Empastado</strong></td>
       <td>${detalle}</td>
       <td class="center">${datos.tomos}</td>
-      <td class="right">RD$${datos.costoUnitario}</td>
-      <td class="right">RD$${datos.empastado}</td>
+      <td class="right">RD$${formatearMonto(datos.costoUnitario)}</td>
+      <td class="right">RD$${formatearMonto(datos.empastado)}</td>
+
     </tr>
   `;
 }
@@ -513,8 +520,9 @@ function generarFilaLomo(tomos, lomoVal) {
       <td>Lomo</td>
       <td>Incluido</td>
       <td class="center">${tomos}</td>
-      <td>RD$${PRECIOS_SERVICIOS.LOMO}</td>
-      <td>RD$${lomoVal}</td>
+      <td>RD$${formatearMonto(PRECIOS_SERVICIOS.LOMO)}</td>
+      <td>RD$${formatearMonto(lomoVal)}</td>
+
     </tr>
   `;
 }
@@ -531,8 +539,9 @@ function generarFilaCD(cantidadCd, cdVal) {
       <td>CD</td>
       <td>${cantidadCd} unidad(es)</td>
       <td class="center">${cantidadCd}</td>
-      <td>RD$${PRECIOS_SERVICIOS.CD}</td>
-      <td>RD$${cdVal}</td>
+      <td>RD$${formatearMonto(PRECIOS_SERVICIOS.CD)}</td>
+      <td>RD$${formatearMonto(cdVal)}</td>
+
     </tr>
   `;
 }
@@ -547,7 +556,7 @@ function generarTablaTotal(total) {
     <table class="tabla-total">
       <tr>
         <td><strong>Total General</strong></td>
-        <td class="right"><strong>RD$${total}</strong></td>
+        <td class="right"><strong>RD$${formatearMonto(total)}</strong></td>
       </tr>
     </table>
   `;
