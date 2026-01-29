@@ -56,14 +56,14 @@ const TIEMPO_ENTREGA = {
 // ============================================
 
 const IMAGEN_EJEMPLAR_TAPA = {
-  beige: 'beige.jpeg',
-  morado: 'morado.jpeg',
+  beige: 'beige.png',
+  morado: 'morado.png',
   azul_marino: 'img/ejemplar-azul-marino.jpg',
-  azul_cielo: 'azulcielo.jpeg',
+  azul_cielo: 'azulcielo.png',
   rojo: 'img/ejemplar-rojo.jpg',
   verde_botella: 'img/ejemplar-verde-botella.jpg',
   amarillo_medicina: 'img/ejemplar-amarillo-medicina.jpg',
-  blanco: 'img/ejemplar-blanco.jpg'
+  blanco: 'blanca.png'
 };
 
 
@@ -113,6 +113,35 @@ function formatearMoneda(valor) {
   return `RD$${valor.toLocaleString('es-DO')}`;
 }
 
+// ============================================
+// 🆔 ID Y FECHA DE COTIZACIÓN
+// ============================================
+
+function generarIdCotizacion() {
+  const fecha = new Date();
+  const y = fecha.getFullYear();
+  const m = String(fecha.getMonth() + 1).padStart(2, '0');
+  const d = String(fecha.getDate()).padStart(2, '0');
+  const h = String(fecha.getHours()).padStart(2, '0');
+  const min = String(fecha.getMinutes()).padStart(2, '0');
+  const rand = Math.floor(Math.random() * 900 + 100);
+
+  return `CTZ-${y}${m}${d}-${h}${min}-${rand}`;
+}
+
+function fechaFormateada() {
+  return new Date().toLocaleString('es-DO', {
+    dateStyle: 'medium',
+    timeStyle: 'short'
+  });
+}
+
+function nombreArchivoPDF(id, colorTapa) {
+  const color = colorTapa ? colorTapa.replace(/_/g, '-') : 'vinil';
+  return `${id}-${color}.pdf`;
+}
+
+
 /**
  * Obtiene valor numérico de un input con valor por defecto
  * @param {string} id - ID del elemento
@@ -158,6 +187,8 @@ const elementos = {
 };
 
 let ultimaCotizacion = '';
+let datosGlobales = {};
+
 
 // ============================================
 // 🎨 FUNCIONES DE VISTA
@@ -351,6 +382,10 @@ function calcularServiciosAdicionales(tomos) {
  */
 function calcular() {
   try {
+
+    const idCotizacion = generarIdCotizacion();
+    const fecha = fechaFormateada();
+
     const tomos = Math.max(1, obtenerValorNumerico('tomos', 1));
     
     // Cálculo de impresión
@@ -367,21 +402,30 @@ function calcular() {
     const totalRedondeado = redondearA5(total);
     
     // Generar HTML de cotización
-    ultimaCotizacion = generarHTMLCotizacion({
-      tomos,
-      impresion,
-      detalleImpresion,
-      empastado,
-      tipoEmp,
-      colorTapa,
-      costoUnitario,
-      lomoVal,
-      lomo,
-      cdVal,
-      cd,
-      cantidadCd,
-      totalRedondeado
-    });
+datosGlobales = {
+  idCotizacion,
+  colorTapa
+};
+
+ultimaCotizacion = generarHTMLCotizacion({
+  tomos,
+  impresion,
+  detalleImpresion,
+  empastado,
+  tipoEmp,
+  colorTapa,
+  costoUnitario,
+  lomoVal,
+  lomo,
+  cdVal,
+  cd,
+  cantidadCd,
+  totalRedondeado,
+  idCotizacion,
+  fecha
+});
+
+
     
     elementos.resultado.innerHTML = ultimaCotizacion;
     
@@ -402,7 +446,7 @@ function calcular() {
 function generarHTMLCotizacion(datos) {
   return `
     <div class="cotizacion">
-      ${generarEncabezado()}
+      ${generarEncabezado(datos.idCotizacion, datos.fecha)}
       ${generarTablaDetalle(datos)}
       ${generarTablaTotal(datos.totalRedondeado)}
       ${BLOQUE_MENSAJE_PAGINA_SIGUIENTE}
@@ -426,17 +470,23 @@ function formatearMonto(valor) {
  * Genera el encabezado de la cotización
  * @returns {string}
  */
-function generarEncabezado() {
+function generarEncabezado(idCotizacion, fecha) {
   return `
     <div class="cotizacion-header">
       <img src="logo.png" class="logo" alt="Logo ServiGaco">
       <div class="empresa-info">
         <h1>Cotización de Tesis</h1>
-        <p>ServiGaco<br>Tel: 809-682-1075</p>
+        <p>
+          <strong>ID:</strong> ${idCotizacion}<br>
+          <strong>Fecha:</strong> ${fecha}<br>
+          ServiGaco<br>
+          Tel: 809-682-1075
+        </p>
       </div>
     </div>
   `;
 }
+
 
 /**
  * Genera la tabla de detalle de servicios
@@ -526,6 +576,7 @@ function generarFilaLomo(tomos, lomoVal) {
     </tr>
   `;
 }
+
 
 /**
  * Genera fila de CD
@@ -711,7 +762,10 @@ async function generarPDFBlob(elemento) {
   return await html2pdf()
     .set({
       margin: 15,
-      filename: 'cotizacion_tesis.pdf',
+      filename: nombreArchivoPDF(
+      datosGlobales.idCotizacion,
+    datosGlobales.colorTapa
+      ),
       image: { type: 'jpeg', quality: 1 },
       html2canvas: {
         scale: 2,                 // calidad alta
@@ -761,6 +815,65 @@ async function compartirODescargarPDF(pdfBlob) {
   descargarPDF(pdfBlob);
 }
 
+document.getElementById("btnDescargarPdf").addEventListener("click", descargarPDF);
+
+function descargarPDF() {
+  const { jsPDF } = window.jspdf;
+
+  const cotizacion = document.querySelector(".cotizacion");
+
+  if (!cotizacion) {
+    alert("No se encontró la cotización");
+    return;
+  }
+
+  // ===== FECHA =====
+  const fecha = new Date();
+  const fechaStr = fecha.toISOString().split("T")[0]; // 2026-01-28
+
+  // ===== ID ÚNICO =====
+  const id = Math.floor(100 + Math.random() * 900); // 3 dígitos
+
+  // ===== COLOR (AJUSTA SEGÚN TU SELECT) =====
+  const color = document.getElementById("colorTapa")
+    ? document.getElementById("colorTapa").value.toUpperCase()
+    : "SIN-COLOR";
+
+  // ===== NOMBRE FINAL =====
+  const nombreArchivo = `COT-${fechaStr}-${id}-${color}.pdf`;
+
+  html2canvas(cotizacion, {
+    scale: 2,
+    useCORS: true
+  }).then(canvas => {
+    const imgData = canvas.toDataURL("image/png");
+
+    const pdf = new jsPDF("p", "mm", "letter");
+
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const pageHeight = pdf.internal.pageSize.getHeight();
+
+    const imgWidth = pageWidth;
+    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+    let heightLeft = imgHeight;
+    let position = 0;
+
+    pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
+    heightLeft -= pageHeight;
+
+    while (heightLeft > 0) {
+      position = heightLeft - imgHeight;
+      pdf.addPage();
+      pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight;
+    }
+
+    pdf.save(nombreArchivo);
+  });
+}
+
+
 /**
  * Descarga el PDF localmente
  * @param {Blob} pdfBlob
@@ -769,7 +882,11 @@ function descargarPDF(pdfBlob) {
   const url = URL.createObjectURL(pdfBlob);
   const enlace = document.createElement('a');
   enlace.href = url;
-  enlace.download = 'cotizacion_tesis.pdf';
+  enlace.download = nombreArchivoPDF(
+  datosGlobales.idCotizacion,
+  datosGlobales.colorTapa
+);
+
   enlace.click();
   URL.revokeObjectURL(url);
 }
