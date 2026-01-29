@@ -56,14 +56,14 @@ const TIEMPO_ENTREGA = {
 // ============================================
 
 const IMAGEN_EJEMPLAR_TAPA = {
-  beige: 'beige.jpeg',
-  morado: 'morado.jpeg',
+  beige: 'beige.png',
+  morado: 'morado.png',
   azul_marino: 'img/ejemplar-azul-marino.jpg',
-  azul_cielo: 'azulcielo.jpeg',
+  azul_cielo: 'azulcielo.png',
   rojo: 'img/ejemplar-rojo.jpg',
   verde_botella: 'img/ejemplar-verde-botella.jpg',
   amarillo_medicina: 'img/ejemplar-amarillo-medicina.jpg',
-  blanco: 'img/ejemplar-blanco.jpg'
+  blanco: 'blanca.png'
 };
 
 
@@ -444,20 +444,25 @@ ultimaCotizacion = generarHTMLCotizacion({
  * @returns {string} HTML generado
  */
 function generarHTMLCotizacion(datos) {
-  return `
-    <div class="cotizacion">
-      ${generarEncabezado(datos.idCotizacion, datos.fecha)}
-      ${generarTablaDetalle(datos)}
+return `
+  <div class="page-break"></div>
+
+  <div class="cotizacion">
+    ${generarEncabezado(datos.idCotizacion, datos.fecha)}
+    ${generarTablaDetalle(datos)}
+    <div class="no-break">
       ${generarTablaTotal(datos.totalRedondeado)}
       ${BLOQUE_MENSAJE_PAGINA_SIGUIENTE}
-      ${generarBloqueEjemplar(datos.tipoEmp, datos.colorTapa)}
-      ${BLOQUE_CUENTAS.replace(
-        '{{TIEMPO_ENTREGA}}',
-        generarTiempoEntrega(datos.tipoEmp)
-      
-      )}
     </div>
-  `;
+    <div class="page-break"></div>
+    ${generarBloqueEjemplar(datos.tipoEmp, datos.colorTapa)}
+    ${BLOQUE_CUENTAS.replace(
+      '{{TIEMPO_ENTREGA}}',
+      generarTiempoEntrega(datos.tipoEmp)
+    )}
+  </div>
+`;
+
 }
 
 function formatearMonto(valor) {
@@ -817,79 +822,45 @@ async function compartirODescargarPDF(pdfBlob) {
 
 document.getElementById("btnDescargarPdf").addEventListener("click", descargarPDF);
 
-function descargarPDF() {
-  const { jsPDF } = window.jspdf;
-
-  const cotizacion = document.querySelector(".cotizacion");
-
-  if (!cotizacion) {
-    alert("No se encontró la cotización");
+async function descargarPDF() {
+  if (!ultimaCotizacion) {
+    alert("Primero genera la cotización");
     return;
   }
 
-  // ===== FECHA =====
-  const fecha = new Date();
-  const fechaStr = fecha.toISOString().split("T")[0]; // 2026-01-28
+  const wrapper = document.createElement("div");
+  wrapper.style.width = "210mm";
+  wrapper.style.background = "#fff";
+  wrapper.innerHTML = ultimaCotizacion;
+  document.body.appendChild(wrapper);
 
-  // ===== ID ÚNICO =====
-  const id = Math.floor(100 + Math.random() * 900); // 3 dígitos
+  const nombre = nombreArchivoPDF(
+    datosGlobales.idCotizacion,
+    datosGlobales.colorTapa
+  );
 
-  // ===== COLOR (AJUSTA SEGÚN TU SELECT) =====
-  const color = document.getElementById("colorTapa")
-    ? document.getElementById("colorTapa").value.toUpperCase()
-    : "SIN-COLOR";
+  await html2pdf()
+    .set({
+      margin: 10,
+      filename: nombre,
+      image: { type: "jpeg", quality: 1 },
+      html2canvas: {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: "#ffffff"
+      },
+      jsPDF: {
+        unit: "mm",
+        format: "a4",
+        orientation: "portrait"
+      }
+    })
+    .from(wrapper)
+    .save();
 
-  // ===== NOMBRE FINAL =====
-  const nombreArchivo = `COT-${fechaStr}-${id}-${color}.pdf`;
-
-  html2canvas(cotizacion, {
-    scale: 2,
-    useCORS: true
-  }).then(canvas => {
-    const imgData = canvas.toDataURL("image/png");
-
-    const pdf = new jsPDF("p", "mm", "letter");
-
-    const pageWidth = pdf.internal.pageSize.getWidth();
-    const pageHeight = pdf.internal.pageSize.getHeight();
-
-    const imgWidth = pageWidth;
-    const imgHeight = (canvas.height * imgWidth) / canvas.width;
-
-    let heightLeft = imgHeight;
-    let position = 0;
-
-    pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
-    heightLeft -= pageHeight;
-
-    while (heightLeft > 0) {
-      position = heightLeft - imgHeight;
-      pdf.addPage();
-      pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
-      heightLeft -= pageHeight;
-    }
-
-    pdf.save(nombreArchivo);
-  });
+  document.body.removeChild(wrapper);
 }
 
-
-/**
- * Descarga el PDF localmente
- * @param {Blob} pdfBlob
- */
-function descargarPDF(pdfBlob) {
-  const url = URL.createObjectURL(pdfBlob);
-  const enlace = document.createElement('a');
-  enlace.href = url;
-  enlace.download = nombreArchivoPDF(
-  datosGlobales.idCotizacion,
-  datosGlobales.colorTapa
-);
-
-  enlace.click();
-  URL.revokeObjectURL(url);
-}
 
 // ============================================
 // 🔄 FUNCIÓN DE REINICIO

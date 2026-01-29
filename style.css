@@ -577,10 +577,16 @@ button.sec:hover {
    🖨️ PRINT STYLES
    ====================================== */
 @media print {
-  @page {
-    size: letter;
-    margin: 12mm;
+  body {
+    padding: 0 !important;
+    margin: 0 !important;
   }
+
+  .bloque-fijo {
+    min-height: auto !important;
+  }
+
+
 
   body {
     background: white;
@@ -1082,3 +1088,10 @@ body {
   font-weight: 500;
   text-align: center;
 }
+
+/* ===== INICIO EN PÁGINA 2 (PDF) ===== */
+.inicio-pagina-2 {
+  page-break-before: always;
+  break-before: page;
+}
+
