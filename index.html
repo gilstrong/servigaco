@@ -234,6 +234,11 @@
             Imprimir
           </button>
 
+          <button id="btnDescargarPdf" class="btn">
+            Descargar PDF
+          </button>
+
+
           <button type="button" id="btnCompartir" class="btn btn-share">
             <span class="btn-icon">📤</span>
             Compartir PDF
@@ -249,7 +254,7 @@
         <div class="resultado" id="resultado" role="status" aria-live="polite"></div>
 
 
-        
+
 
       </form>
     </section>
@@ -384,5 +389,8 @@
 
   <!-- SCRIPT PRINCIPAL -->
   <script src="script.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
 </body>
 </html>
