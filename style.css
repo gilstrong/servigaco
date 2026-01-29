@@ -1089,9 +1089,6 @@ body {
   text-align: center;
 }
 
-/* ===== INICIO EN PÁGINA 2 (PDF) ===== */
-.inicio-pagina-2 {
-  page-break-before: always;
-  break-before: page;
-}
+
+
 
