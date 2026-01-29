@@ -56,14 +56,14 @@ const TIEMPO_ENTREGA = {
 // ============================================
 
 const IMAGEN_EJEMPLAR_TAPA = {
-  beige: 'beige.png',
-  morado: 'morado.png',
+  beige: 'beige.jpeg',
+  morado: 'morado.jpeg',
   azul_marino: 'img/ejemplar-azul-marino.jpg',
-  azul_cielo: 'azulcielo.png',
+  azul_cielo: 'azulcielo.jpeg',
   rojo: 'img/ejemplar-rojo.jpg',
   verde_botella: 'img/ejemplar-verde-botella.jpg',
   amarillo_medicina: 'img/ejemplar-amarillo-medicina.jpg',
-  blanco: 'blanca.png'
+  blanco: 'img/ejemplar-blanco.jpg'
 };
 
 
