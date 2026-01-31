@@ -450,11 +450,11 @@ return `
   <div class="cotizacion">
     ${generarEncabezado(datos.idCotizacion, datos.fecha)}
     ${generarTablaDetalle(datos)}
-    <div class="no-break">
+    
       ${generarTablaTotal(datos.totalRedondeado)}
       ${BLOQUE_MENSAJE_PAGINA_SIGUIENTE}
-    </div>
-    <div class="page-break"></div>
+  
+    
     ${generarBloqueEjemplar(datos.tipoEmp, datos.colorTapa)}
     ${BLOQUE_CUENTAS.replace(
       '{{TIEMPO_ENTREGA}}',

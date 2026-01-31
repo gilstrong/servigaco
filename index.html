@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="description" content="Calculadora profesional para cotización de tesis con empastado y opciones personalizadas" />
   <meta name="keywords" content="calculadora tesis, empastado, cotización, impresión" />
-  <meta name="author" content="Tu Empresa" />
+  <meta name="author" content="ServiGaco" />
   
   <title>Calculadora de Tesis - Cotización Profesional</title>
 
@@ -16,14 +16,45 @@
   <link rel="icon" type="image/png" sizes="32x32" href="assets/icono.png" />
   <link rel="shortcut icon" href="assets/icono.png" />
 
-  <!-- HTML2PDF (Solo una vez) -->
+  <!-- HTML2PDF -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" defer></script>
 </head>
-
 
 <body>
   <main class="container">
     
+    <!-- ========================================
+         🧭 NAVEGACIÓN PRINCIPAL
+         ======================================== -->
+    <nav class="main-nav" role="navigation" aria-label="Navegación principal">
+      <div class="nav-container">
+        <!-- Logo -->
+        <div class="nav-brand">
+          <img src="logo.png" alt="Logo ServiGaco" class="nav-logo" />
+        </div>
+
+        <!-- Links de navegación -->
+        <ul class="nav-links">
+          <li class="nav-item">
+            <a href="index.html" class="nav-link active" id="navTesis">
+              <span class="nav-icon">🎓</span>
+              <span class="nav-text">Calculadora de Tesis</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="calculadora_general.html" class="nav-link" id="navGeneral">
+              <span class="nav-icon">📋</span>
+              <span class="nav-text">Servicios Generales</span>
+            </a>
+          </li>
+        </ul>
+
+        <!-- Botón móvil (hamburguesa) -->
+        <button class="nav-toggle" aria-label="Abrir menú" aria-expanded="false">
+          <span class="hamburger"></span>
+        </button>
+      </div>
+    </nav>
 
     <!-- ========================================
          📝 SECCIÓN: CALCULADORA DE TESIS
@@ -38,8 +69,6 @@
       <header>
         <h1>Calculadora de Tesis</h1>
       </header>
-
-      
 
       <!-- Formulario de cotización -->
       <form id="formCotizacion" aria-label="Formulario de cálculo">
@@ -234,10 +263,9 @@
             Imprimir
           </button>
 
-<button type="button" id="btnDescargarPdf" class="btn">
-  Descargar PDF
-</button>
-
+          <button type="button" id="btnDescargarPdf" class="btn">
+            Descargar PDF
+          </button>
 
           <button type="button" id="btnCompartir" class="btn btn-share">
             <span class="btn-icon">📤</span>
@@ -253,149 +281,196 @@
         <!-- Resultado del cálculo -->
         <div class="resultado" id="resultado" role="status" aria-live="polite"></div>
 
-
-
-
       </form>
+
+      <!-- ========================================
+           💳 SECCIÓN: COTIZACIÓN GENERADA
+           ======================================== -->
+      <section id="cotizacionGenerada" class="cotizacion" style="display: none;"></section>
+
+      <!-- ========================================
+           📋 SECCIÓN: TABLA DE PRECIOS
+           ======================================== -->
+      <div class="tabla-container">
+        <button 
+          type="button" 
+          id="btnMostrarTabla" 
+          class="btn btn-secondary btn-toggle"
+          aria-expanded="false"
+          aria-controls="tablaPrecios"
+        >
+          <span class="btn-icon">📋</span>
+          Ver precios y detalles
+        </button>
+
+        <section 
+          class="tabla-precios" 
+          id="tablaPrecios" 
+          aria-label="Tabla de precios y servicios"
+        >
+          <header class="tabla-header">
+            <h3>
+              <span class="tabla-icon">📋</span>
+              Precios y Detalles
+            </h3>
+            <p class="tabla-subtitle">Todos los precios están en pesos dominicanos (RD$)</p>
+          </header>
+
+          <div class="tabla-responsive">
+            <table>
+              <caption class="sr-only">Lista completa de precios por servicio</caption>
+              <thead>
+                <tr>
+                  <th scope="col">Concepto</th>
+                  <th scope="col">Detalle</th>
+                  <th scope="col">Precio (RD$)</th>
+                </tr>
+              </thead>
+              <tbody>
+                <!-- Papel Bond -->
+                <tr>
+                  <td data-label="Concepto">Bond</td>
+                  <td data-label="Detalle">B/N</td>
+                  <td data-label="Precio">$6 / pág.</td>
+                </tr>
+                <tr>
+                  <td data-label="Concepto">Bond</td>
+                  <td data-label="Detalle">Color</td>
+                  <td data-label="Precio">$12 / pág.</td>
+                </tr>
+
+                <!-- Papel Hilo -->
+                <tr>
+                  <td data-label="Concepto">Hilo</td>
+                  <td data-label="Detalle">B/N</td>
+                  <td data-label="Precio">$8 / pág.</td>
+                </tr>
+                <tr>
+                  <td data-label="Concepto">Hilo</td>
+                  <td data-label="Detalle">Color</td>
+                  <td data-label="Precio">$15 / pág.</td>
+                </tr>
+
+                <!-- Papel Satinado -->
+                <tr>
+                  <td data-label="Concepto">Satinado (Carta)</td>
+                  <td data-label="Detalle">B/N o Color</td>
+                  <td data-label="Precio">$25 / pág.</td>
+                </tr>
+                <tr>
+                  <td data-label="Concepto">Satinado (11×17)</td>
+                  <td data-label="Detalle">B/N o Color</td>
+                  <td data-label="Precio">$45 / pág.</td>
+                </tr>
+
+                <!-- Empastado Tapa Dura -->
+                <tr>
+                  <td data-label="Concepto">Empastado Tapa Dura</td>
+                  <td data-label="Detalle">Carta</td>
+                  <td data-label="Precio">$500–600</td>
+                </tr>
+
+                <!-- Empastado Vinil -->
+                <tr>
+                  <td data-label="Concepto">Empastado Vinil</td>
+                  <td data-label="Detalle">Carta</td>
+                  <td data-label="Precio">$1,200</td>
+                </tr>
+                <tr>
+                  <td data-label="Concepto">Empastado Vinil</td>
+                  <td data-label="Detalle">11×17</td>
+                  <td data-label="Precio">$1,500</td>
+                </tr>
+
+                <!-- Extras -->
+                <tr>
+                  <td data-label="Concepto">Lomo</td>
+                  <td data-label="Detalle">Por tomo</td>
+                  <td data-label="Precio">$50</td>
+                </tr>
+                <tr>
+                  <td data-label="Concepto">CD rotulado</td>
+                  <td data-label="Detalle">Por unidad</td>
+                  <td data-label="Precio">$200</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <footer class="tabla-footer">
+            <p>
+              <span class="info-icon">ℹ️</span>
+              Los precios pueden variar según especificaciones especiales. 
+              Contáctanos para más información.
+            </p>
+          </footer>
+        </section>
+      </div>
     </section>
-
-    <!-- ========================================
-         💳 SECCIÓN: COTIZACIÓN GENERADA
-         ======================================== -->
-    <section
-  id="cotizacionGenerada"
-  class="cotizacion inicio-pagina-2"
-  style="display: none;"
->
-
-      <!-- Aquí se generará la cotización dinámicamente con JavaScript -->
-    </section>
-
-    <!-- ========================================
-         📋 SECCIÓN: TABLA DE PRECIOS
-         ======================================== -->
-    <div class="tabla-container">
-      <button 
-        type="button" 
-        id="btnMostrarTabla" 
-        class="btn btn-secondary btn-toggle"
-        aria-expanded="false"
-        aria-controls="tablaPrecios"
-      >
-        <span class="btn-icon">📋</span>
-        Ver precios y detalles
-      </button>
-
-      <section 
-        class="tabla-precios" 
-        id="tablaPrecios" 
-        aria-label="Tabla de precios y servicios"
-      >
-        <header class="tabla-header">
-          <h3>
-            <span class="tabla-icon">📋</span>
-            Precios y Detalles
-          </h3>
-          <p class="tabla-subtitle">Todos los precios están en pesos dominicanos (RD$)</p>
-        </header>
-
-        <div class="tabla-responsive">
-          <table>
-            <caption class="sr-only">Lista completa de precios por servicio</caption>
-            <thead>
-              <tr>
-                <th scope="col">Concepto</th>
-                <th scope="col">Detalle</th>
-                <th scope="col">Precio (RD$)</th>
-              </tr>
-            </thead>
-            <tbody>
-              <!-- Papel Bond -->
-              <tr>
-                <td data-label="Concepto">Bond</td>
-                <td data-label="Detalle">B/N</td>
-                <td data-label="Precio">$6 / pág.</td>
-              </tr>
-              <tr>
-                <td data-label="Concepto">Bond</td>
-                <td data-label="Detalle">Color</td>
-                <td data-label="Precio">$12 / pág.</td>
-              </tr>
-
-              <!-- Papel Hilo -->
-              <tr>
-                <td data-label="Concepto">Hilo</td>
-                <td data-label="Detalle">B/N</td>
-                <td data-label="Precio">$8 / pág.</td>
-              </tr>
-              <tr>
-                <td data-label="Concepto">Hilo</td>
-                <td data-label="Detalle">Color</td>
-                <td data-label="Precio">$15 / pág.</td>
-              </tr>
-
-              <!-- Papel Satinado -->
-              <tr>
-                <td data-label="Concepto">Satinado (Carta)</td>
-                <td data-label="Detalle">B/N o Color</td>
-                <td data-label="Precio">$25 / pág.</td>
-              </tr>
-              <tr>
-                <td data-label="Concepto">Satinado (11×17)</td>
-                <td data-label="Detalle">B/N o Color</td>
-                <td data-label="Precio">$45 / pág.</td>
-              </tr>
-
-              <!-- Empastado Tapa Dura -->
-              <tr>
-                <td data-label="Concepto">Empastado Tapa Dura</td>
-                <td data-label="Detalle">Carta</td>
-                <td data-label="Precio">$500–600</td>
-              </tr>
-
-              <!-- Empastado Vinil -->
-              <tr>
-                <td data-label="Concepto">Empastado Vinil</td>
-                <td data-label="Detalle">Carta</td>
-                <td data-label="Precio">$1,200</td>
-              </tr>
-              <tr>
-                <td data-label="Concepto">Empastado Vinil</td>
-                <td data-label="Detalle">11×17</td>
-                <td data-label="Precio">$1,500</td>
-              </tr>
-
-              <!-- Extras -->
-              <tr>
-                <td data-label="Concepto">Lomo</td>
-                <td data-label="Detalle">Por tomo</td>
-                <td data-label="Precio">$50</td>
-              </tr>
-              <tr>
-                <td data-label="Concepto">CD rotulado</td>
-                <td data-label="Detalle">Por unidad</td>
-                <td data-label="Precio">$200</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-
-        <footer class="tabla-footer">
-          <p>
-            <span class="info-icon">ℹ️</span>
-            Los precios pueden variar según especificaciones especiales. 
-            Contáctanos para más información.
-          </p>
-        </footer>
-      </section>
-    </div>
 
   </main>
 
-  <!-- SCRIPT PRINCIPAL -->
+  <!-- SCRIPTS -->
   <script src="script.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  
+  <!-- Script del NAV -->
+  <script>
+    // ============================================
+    // 🧭 NAVEGACIÓN - FUNCIONALIDAD
+    // ============================================
+    function inicializarNav() {
+      marcarPaginaActiva();
+      configurarMenuMovil();
+    }
 
+    function marcarPaginaActiva() {
+      const paginaActual = window.location.pathname.split('/').pop() || 'index.html';
+      
+      document.querySelectorAll('.nav-link').forEach(link => {
+        link.classList.remove('active');
+      });
+      
+      if (paginaActual === 'index.html' || paginaActual === '') {
+        document.getElementById('navTesis')?.classList.add('active');
+      } else if (paginaActual === 'calculadora_general.html') {
+        document.getElementById('navGeneral')?.classList.add('active');
+      }
+    }
+
+    function configurarMenuMovil() {
+      const navToggle = document.querySelector('.nav-toggle');
+      const navLinks = document.querySelector('.nav-links');
+      
+      if (!navToggle || !navLinks) return;
+      
+      navToggle.addEventListener('click', () => {
+        const isExpanded = navToggle.getAttribute('aria-expanded') === 'true';
+        navToggle.setAttribute('aria-expanded', !isExpanded);
+        navLinks.classList.toggle('active');
+      });
+      
+      document.querySelectorAll('.nav-link').forEach(link => {
+        link.addEventListener('click', () => {
+          navToggle.setAttribute('aria-expanded', 'false');
+          navLinks.classList.remove('active');
+        });
+      });
+      
+      document.addEventListener('click', (e) => {
+        if (!e.target.closest('.main-nav')) {
+          navToggle.setAttribute('aria-expanded', 'false');
+          navLinks.classList.remove('active');
+        }
+      });
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', inicializarNav);
+    } else {
+      inicializarNav();
+    }
+  </script>
 </body>
 </html>

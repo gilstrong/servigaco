@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Calculadora de servicios generales - Impresiones, ploteos, encuadernados, empastados y más" />
+  <meta name="keywords" content="impresiones, ploteos, encuadernado, empastado, plastificado" />
+  <meta name="author" content="ServiGaco" />
+  
+  <title>Calculadora de Servicios - ServiGaco</title>
+
+  <!-- ESTILOS -->
+  <link rel="stylesheet" href="style.css" />
+
+  <!-- FAVICON -->
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/icono.png" />
+  <link rel="shortcut icon" href="assets/icono.png" />
+</head>
+
+<body>
+  <main class="container">
+    
+    <!-- ========================================
+         🧭 NAVEGACIÓN PRINCIPAL
+         ======================================== -->
+    <nav class="main-nav" role="navigation" aria-label="Navegación principal">
+      <div class="nav-container">
+        <!-- Logo -->
+        <div class="nav-brand">
+          <img src="logo.png" alt="Logo ServiGaco" class="nav-logo" />
+        </div>
+
+        <!-- Links de navegación -->
+        <ul class="nav-links">
+          <li class="nav-item">
+            <a href="index.html" class="nav-link" id="navTesis">
+              <span class="nav-icon">🎓</span>
+              <span class="nav-text">Calculadora de Tesis</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="calculadora_general.html" class="nav-link active" id="navGeneral">
+              <span class="nav-icon">📋</span>
+              <span class="nav-text">Servicios Generales</span>
+            </a>
+          </li>
+        </ul>
+
+        <!-- Botón móvil (hamburguesa) -->
+        <button class="nav-toggle" aria-label="Abrir menú" aria-expanded="false">
+          <span class="hamburger"></span>
+        </button>
+      </div>
+    </nav>
+
+    <!-- ========================================
+         📋 SECCIÓN: CALCULADORA GENERAL
+         ======================================== -->
+    <section class="form-card" aria-label="Calculadora de servicios">
+      <!-- Logo -->
+      <figure class="logo-container">
+        <img src="logo.png" alt="Logo de la empresa" class="logo-form" width="150" height="80" />
+      </figure>
+
+      <!-- Título principal -->
+      <header>
+        <h1>Calculadora de Servicios</h1>
+        <p class="subtitle">Cotiza impresiones, ploteos, encuadernados y más</p>
+      </header>
+
+      <!-- ========================================
+           🛒 CARRITO DE SERVICIOS
+           ======================================== -->
+      <div class="carrito-servicios">
+        <div class="carrito-header">
+          <h2>
+            <span class="carrito-icon">🛒</span>
+            Servicios Agregados
+            <span class="carrito-count" id="carritoCount">0</span>
+          </h2>
+        </div>
+        
+        <div class="carrito-items" id="carritoItems">
+          <div class="carrito-vacio">
+            <span class="empty-icon">📭</span>
+            <p>No hay servicios agregados</p>
+            <p class="empty-hint">Selecciona un servicio abajo para empezar</p>
+          </div>
+        </div>
+
+        <!-- ========================================
+             🧾 SECCIÓN: COMPROBANTE
+             ======================================== -->
+        <div class="comprobante-section" id="comprobanteSection" style="display: none;">
+          <h3 class="comprobante-title">
+            <span class="section-icon">🧾</span>
+            Comprobante
+          </h3>
+          <div class="form-group">
+            <label for="tipoComprobante">
+              <span class="label-icon">📋</span>
+              Tipo de comprobante
+            </label>
+            <select id="tipoComprobante">
+              <option value="ninguno">Sin comprobante</option>
+              <option value="fiscal">Comprobante Fiscal (ITBIS 18%)</option>
+              <option value="gubernamental">Comprobante Gubernamental (ISR 10%)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="carrito-total" id="carritoTotal" style="display: none;">
+          <div class="subtotal-row" id="subtotalRow" style="display: none;">
+            <span class="subtotal-label">Subtotal:</span>
+            <span class="subtotal-amount" id="subtotalAmount">RD$0.00</span>
+          </div>
+          <div class="impuesto-row" id="impuestoRow" style="display: none;">
+            <span class="impuesto-label" id="impuestoLabel">ITBIS (18%):</span>
+            <span class="impuesto-amount" id="impuestoAmount">RD$0.00</span>
+          </div>
+          <div class="total-row">
+            <span class="total-label">TOTAL:</span>
+            <span class="total-amount" id="totalAmount">RD$0.00</span>
+          </div>
+        </div>
+
+        <div class="carrito-acciones" id="carritoAcciones" style="display: none;">
+          <button type="button" id="btnGenerarCotizacion" class="btn btn-primary">
+            <span class="btn-icon">📄</span>
+            Generar Cotización
+          </button>
+          <button type="button" id="btnLimpiarCarrito" class="btn btn-secondary">
+            <span class="btn-icon">🗑️</span>
+            Limpiar Todo
+          </button>
+        </div>
+      </div>
+
+      <!-- ========================================
+           ➕ AGREGAR SERVICIOS
+           ======================================== -->
+      <div class="agregar-servicio">
+        <h2>
+          <span class="section-icon">➕</span>
+          Agregar Servicio
+        </h2>
+
+        <!-- Selector de tipo de servicio -->
+        <div class="form-group">
+          <label for="tipoServicio">
+            <span class="label-icon">📦</span>
+            Tipo de servicio
+          </label>
+          <select id="tipoServicio" class="select-servicio">
+            <option value="">-- Selecciona un servicio --</option>
+            <option value="impresion">📄 Impresiones (Carta)</option>
+            <option value="encuadernado">📚 Encuadernado Espiral</option>
+            <option value="empastado">📕 Empastado</option>
+            <option value="ploteo">🖼️ Ploteo</option>
+            <option value="plastificado">💳 Plastificado</option>
+          </select>
+        </div>
+
+        <!-- ========================================
+             📄 FORMULARIO: IMPRESIONES
+             ======================================== -->
+        <div id="formImpresion" class="form-servicio" style="display: none;">
+          <h3 class="form-title">
+            <span class="title-icon">📄</span>
+            Impresiones Carta (8.5x11)
+          </h3>
+
+          <!-- Tipo de impresión -->
+          <div class="form-group">
+            <label for="tipoImpresion">
+              <span class="label-icon">🎨</span>
+              Tipo de impresión
+            </label>
+            <select id="tipoImpresion">
+              <option value="bn">Blanco y Negro</option>
+              <option value="color">Color</option>
+              <option value="full_color">Full Color</option>
+            </select>
+          </div>
+
+          <!-- Caras -->
+          <div class="form-group">
+            <label for="caras">
+              <span class="label-icon">📑</span>
+              Caras
+            </label>
+            <select id="caras">
+              <option value="doble">Doble cara (más común)</option>
+              <option value="simple">Simple cara</option>
+            </select>
+          </div>
+
+          <!-- Cantidad de páginas -->
+          <div class="form-group">
+            <label for="cantidadPaginas">
+              <span class="label-icon">🔢</span>
+              Cantidad de páginas
+            </label>
+            <input 
+              type="number" 
+              id="cantidadPaginas" 
+              min="1" 
+              value="1"
+              placeholder="Ej: 50"
+            />
+            <small class="form-hint">El precio se ajusta según la cantidad</small>
+          </div>
+
+          <!-- Precio personalizado (opcional) -->
+          <div class="form-group">
+            <label for="precioPersonalImpresion">
+              <span class="label-icon">💰</span>
+              Precio personalizado (opcional)
+            </label>
+            <div class="input-with-prefix">
+              <span class="input-prefix">RD$</span>
+              <input 
+                type="number" 
+                id="precioPersonalImpresion" 
+                step="0.01"
+                placeholder="Dejar vacío para usar precio automático"
+              />
+            </div>
+            <small class="form-hint">Si no especificas, se calculará automáticamente</small>
+          </div>
+
+          <button type="button" class="btn btn-add" onclick="agregarImpresion()">
+            <span class="btn-icon">➕</span>
+            Agregar al Carrito
+          </button>
+        </div>
+
+        <!-- ========================================
+             📚 FORMULARIO: ENCUADERNADO ESPIRAL
+             ======================================== -->
+        <div id="formEncuadernado" class="form-servicio" style="display: none;">
+          <h3 class="form-title">
+            <span class="title-icon">📚</span>
+            Encuadernado Espiral
+          </h3>
+
+          <!-- Cantidad de páginas -->
+          <div class="form-group">
+            <label for="paginasEncuadernado">
+              <span class="label-icon">📊</span>
+              Cantidad de páginas
+            </label>
+            <input 
+              type="number" 
+              id="paginasEncuadernado" 
+              min="1" 
+              value="100"
+              placeholder="Ej: 100"
+            />
+            <small class="form-hint">Recuerda: 50 hojas = 100 páginas (doble cara)</small>
+          </div>
+
+          <!-- Cantidad de encuadernados -->
+          <div class="form-group">
+            <label for="cantidadEncuadernado">
+              <span class="label-icon">🔢</span>
+              Cantidad de encuadernados
+            </label>
+            <input 
+              type="number" 
+              id="cantidadEncuadernado" 
+              min="1" 
+              value="1"
+              placeholder="Ej: 3"
+            />
+          </div>
+
+          <!-- Precio personalizado -->
+          <div class="form-group">
+            <label for="precioPersonalEncuadernado">
+              <span class="label-icon">💰</span>
+              Precio personalizado (opcional)
+            </label>
+            <div class="input-with-prefix">
+              <span class="input-prefix">RD$</span>
+              <input 
+                type="number" 
+                id="precioPersonalEncuadernado" 
+                step="0.01"
+                placeholder="Dejar vacío para usar precio automático"
+              />
+            </div>
+          </div>
+
+          <button type="button" class="btn btn-add" onclick="agregarEncuadernado()">
+            <span class="btn-icon">➕</span>
+            Agregar al Carrito
+          </button>
+        </div>
+
+        <!-- ========================================
+             📕 FORMULARIO: EMPASTADO
+             ======================================== -->
+        <div id="formEmpastado" class="form-servicio" style="display: none;">
+          <h3 class="form-title">
+            <span class="title-icon">📕</span>
+            Empastado
+          </h3>
+
+          <!-- Tipo de empastado -->
+          <div class="form-group">
+            <label for="tipoEmpastadoGeneral">
+              <span class="label-icon">📖</span>
+              Tipo de empastado
+            </label>
+            <select id="tipoEmpastadoGeneral">
+              <option value="tapa_dura">Tapa Dura</option>
+              <option value="tapa_blanda">Tapa Blanda</option>
+            </select>
+          </div>
+
+          <!-- Tamaño -->
+          <div class="form-group">
+            <label for="tamanoEmpastado">
+              <span class="label-icon">📐</span>
+              Tamaño
+            </label>
+            <select id="tamanoEmpastado">
+              <option value="carta">Carta (8.5x11)</option>
+              <option value="legal">Legal (8.5x14)</option>
+              <option value="tabloide">Tabloide (11x17)</option>
+            </select>
+          </div>
+
+          <!-- Cantidad -->
+          <div class="form-group">
+            <label for="cantidadEmpastado">
+              <span class="label-icon">🔢</span>
+              Cantidad
+            </label>
+            <input 
+              type="number" 
+              id="cantidadEmpastado" 
+              min="1" 
+              value="1"
+            />
+          </div>
+
+          <!-- Precio personalizado -->
+          <div class="form-group">
+            <label for="precioPersonalEmpastado">
+              <span class="label-icon">💰</span>
+              Precio personalizado (opcional)
+            </label>
+            <div class="input-with-prefix">
+              <span class="input-prefix">RD$</span>
+              <input 
+                type="number" 
+                id="precioPersonalEmpastado" 
+                step="0.01"
+                placeholder="Dejar vacío para usar precio automático"
+              />
+            </div>
+          </div>
+
+          <button type="button" class="btn btn-add" onclick="agregarEmpastado()">
+            <span class="btn-icon">➕</span>
+            Agregar al Carrito
+          </button>
+        </div>
+
+        <!-- ========================================
+             🖼️ FORMULARIO: PLOTEO
+             ======================================== -->
+        <div id="formPloteo" class="form-servicio" style="display: none;">
+          <h3 class="form-title">
+            <span class="title-icon">🖼️</span>
+            Ploteo
+          </h3>
+
+          <!-- Tipo de ploteo -->
+          <div class="form-group">
+            <label for="tipoPloteo">
+              <span class="label-icon">🎨</span>
+              Tipo
+            </label>
+            <select id="tipoPloteo">
+              <option value="bond_bn">Bond - Blanco y Negro</option>
+              <option value="bond_color">Bond - Color</option>
+              <option value="cartonite">Cartonite</option>
+              <option value="fotografico">Papel Fotográfico</option>
+              <option value="canvas">Canvas</option>
+              <option value="lona">Lona</option>
+              <option value="cintra">Cintra</option>
+            </select>
+          </div>
+
+          <!-- Tamaño - Predefinido o personalizado -->
+          <div class="form-group">
+            <label for="opcionTamanoPloteo">
+              <span class="label-icon">📐</span>
+              Tamaño
+            </label>
+            <select id="opcionTamanoPloteo">
+              <option value="predefinido">Tamaños predefinidos</option>
+              <option value="personalizado">Tamaño personalizado</option>
+            </select>
+          </div>
+
+          <!-- Tamaños predefinidos -->
+          <div id="tamanosPredefinidos" class="form-group">
+            <label for="tamanoPloteo">Seleccionar tamaño</label>
+            <select id="tamanoPloteo">
+              <option value="17x22">17x22</option>
+              <option value="18x24">18x24</option>
+              <option value="24x36">24x36</option>
+              <option value="36x48">36x48</option>
+            </select>
+          </div>
+
+          <!-- Tamaño personalizado -->
+          <div id="tamanoPersonalizado" class="form-section" style="display: none;">
+            <div class="form-row">
+              <div class="form-group">
+                <label for="anchoPloteo">
+                  <span class="label-icon">↔️</span>
+                  Ancho (pulgadas)
+                </label>
+                <input 
+                  type="number" 
+                  id="anchoPloteo" 
+                  min="1" 
+                  step="0.1"
+                  placeholder="Ej: 24"
+                />
+              </div>
+              <div class="form-group">
+                <label for="altoPloteo">
+                  <span class="label-icon">↕️</span>
+                  Alto (pulgadas)
+                </label>
+                <input 
+                  type="number" 
+                  id="altoPloteo" 
+                  min="1" 
+                  step="0.1"
+                  placeholder="Ej: 36"
+                />
+              </div>
+            </div>
+            <small class="form-hint">Se calculará: (ancho × alto) ÷ 144 × precio/pie²</small>
+          </div>
+
+          <!-- Cantidad -->
+          <div class="form-group">
+            <label for="cantidadPloteo">
+              <span class="label-icon">🔢</span>
+              Cantidad
+            </label>
+            <input 
+              type="number" 
+              id="cantidadPloteo" 
+              min="1" 
+              value="1"
+            />
+          </div>
+
+          <!-- Precio personalizado -->
+          <div class="form-group">
+            <label for="precioPersonalPloteo">
+              <span class="label-icon">💰</span>
+              Precio personalizado (opcional)
+            </label>
+            <div class="input-with-prefix">
+              <span class="input-prefix">RD$</span>
+              <input 
+                type="number" 
+                id="precioPersonalPloteo" 
+                step="0.01"
+                placeholder="Dejar vacío para usar precio automático"
+              />
+            </div>
+          </div>
+
+          <button type="button" class="btn btn-add" onclick="agregarPloteo()">
+            <span class="btn-icon">➕</span>
+            Agregar al Carrito
+          </button>
+        </div>
+
+        <!-- ========================================
+             💳 FORMULARIO: PLASTIFICADO
+             ======================================== -->
+        <div id="formPlastificado" class="form-servicio" style="display: none;">
+          <h3 class="form-title">
+            <span class="title-icon">💳</span>
+            Plastificado
+          </h3>
+
+          <!-- Tamaño -->
+          <div class="form-group">
+            <label for="tamanoPlastificado">
+              <span class="label-icon">📐</span>
+              Tamaño
+            </label>
+            <select id="tamanoPlastificado">
+              <option value="carta">Carta (8.5x11) - RD$40</option>
+              <option value="tabloide">Tabloide (11x17) - RD$80</option>
+            </select>
+          </div>
+
+          <!-- ¿Lleva corte? -->
+          <div class="form-group">
+            <label for="llevaCorte">
+              <span class="label-icon">✂️</span>
+              ¿Lleva corte?
+            </label>
+            <select id="llevaCorte">
+              <option value="no">No</option>
+              <option value="si">Sí</option>
+            </select>
+          </div>
+
+          <!-- Cantidad de piezas (si lleva corte) -->
+          <div id="seccionPiezas" class="form-group" style="display: none;">
+            <label for="cantidadPiezas">
+              <span class="label-icon">🔢</span>
+              Cantidad de piezas por hoja
+            </label>
+            <input 
+              type="number" 
+              id="cantidadPiezas" 
+              min="1" 
+              value="2"
+              placeholder="Ej: 2 tarjetas"
+            />
+            <small class="form-hint">Se dividirá el precio entre las piezas</small>
+          </div>
+
+          <!-- Cantidad de hojas -->
+          <div class="form-group">
+            <label for="cantidadPlastificado">
+              <span class="label-icon">📄</span>
+              Cantidad de hojas
+            </label>
+            <input 
+              type="number" 
+              id="cantidadPlastificado" 
+              min="1" 
+              value="1"
+            />
+          </div>
+
+          <!-- Precio personalizado -->
+          <div class="form-group">
+            <label for="precioPersonalPlastificado">
+              <span class="label-icon">💰</span>
+              Precio personalizado (opcional)
+            </label>
+            <div class="input-with-prefix">
+              <span class="input-prefix">RD$</span>
+              <input 
+                type="number" 
+                id="precioPersonalPlastificado" 
+                step="0.01"
+                placeholder="Dejar vacío para usar precio automático"
+              />
+            </div>
+          </div>
+
+          <button type="button" class="btn btn-add" onclick="agregarPlastificado()">
+            <span class="btn-icon">➕</span>
+            Agregar al Carrito
+          </button>
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <script src="scriptgeneral.js"></script>
+</body>
+</html>
