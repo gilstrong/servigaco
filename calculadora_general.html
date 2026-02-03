@@ -69,23 +69,66 @@
       </header>
 
       <!-- ========================================
-           🛒 CARRITO DE SERVICIOS
+           � TABLA DE COTIZACIÓN
            ======================================== -->
-      <div class="carrito-servicios">
-        <div class="carrito-header">
+      <div class="cotizacion-section">
+        <div class="cotizacion-header">
           <h2>
-            <span class="carrito-icon">🛒</span>
-            Servicios Agregados
-            <span class="carrito-count" id="carritoCount">0</span>
+            <span class="cotizacion-icon">📊</span>
+            Cotización en Tiempo Real
+            <span class="cotizacion-count" id="cotizacionCount">0</span>
           </h2>
         </div>
-        
-        <div class="carrito-items" id="carritoItems">
-          <div class="carrito-vacio">
-            <span class="empty-icon">📭</span>
-            <p>No hay servicios agregados</p>
-            <p class="empty-hint">Selecciona un servicio abajo para empezar</p>
-          </div>
+
+        <div class="cotizacion-tabla-container">
+          <table class="cotizacion-tabla" id="cotizacionTabla">
+            <thead>
+              <tr>
+                <th>Servicio</th>
+                <th>Descripción</th>
+                <th>Cantidad</th>
+                <th>Precio Unitario</th>
+                <th>Total</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="cotizacionBody">
+              <tr class="cotizacion-vacia">
+                <td colspan="6">
+                  <div class="empty-cotizacion">
+                    <span class="empty-icon">📭</span>
+                    <p>No hay servicios en la cotización</p>
+                    <p class="empty-hint">Selecciona un servicio abajo para empezar</p>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+            <tfoot id="cotizacionFooter" style="display: none;">
+              <tr class="subtotal-row">
+                <td colspan="4" class="total-label">Subtotal:</td>
+                <td class="total-amount" id="subtotalAmount">RD$0.00</td>
+                <td></td>
+              </tr>
+              <tr class="impuesto-row" id="impuestoRow" style="display: none;">
+                <td colspan="4" class="total-label" id="impuestoLabel">ITBIS (18%):</td>
+                <td class="total-amount" id="impuestoAmount">RD$0.00</td>
+                <td></td>
+              </tr>
+              <tr class="total-row">
+                <td colspan="4" class="total-label">TOTAL:</td>
+                <td class="total-amount" id="totalAmount">RD$0.00</td>
+                <td></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+
+        <!-- Botón para generar PDF -->
+        <div class="pdf-button-container">
+          <button id="generarPDF" class="btn-generar-pdf">
+            <span class="btn-icon">📄</span>
+            Generar PDF de Cotización
+          </button>
         </div>
 
         <!-- ========================================
@@ -94,7 +137,7 @@
         <div class="comprobante-section" id="comprobanteSection" style="display: none;">
           <h3 class="comprobante-title">
             <span class="section-icon">🧾</span>
-            Comprobante
+            Tipo de Comprobante
           </h3>
           <div class="form-group">
             <label for="tipoComprobante">
@@ -109,29 +152,14 @@
           </div>
         </div>
 
-        <div class="carrito-total" id="carritoTotal" style="display: none;">
-          <div class="subtotal-row" id="subtotalRow" style="display: none;">
-            <span class="subtotal-label">Subtotal:</span>
-            <span class="subtotal-amount" id="subtotalAmount">RD$0.00</span>
-          </div>
-          <div class="impuesto-row" id="impuestoRow" style="display: none;">
-            <span class="impuesto-label" id="impuestoLabel">ITBIS (18%):</span>
-            <span class="impuesto-amount" id="impuestoAmount">RD$0.00</span>
-          </div>
-          <div class="total-row">
-            <span class="total-label">TOTAL:</span>
-            <span class="total-amount" id="totalAmount">RD$0.00</span>
-          </div>
-        </div>
-
-        <div class="carrito-acciones" id="carritoAcciones" style="display: none;">
+        <div class="cotizacion-acciones" id="cotizacionAcciones" style="display: none;">
           <button type="button" id="btnGenerarCotizacion" class="btn btn-primary">
             <span class="btn-icon">📄</span>
-            Generar Cotización
+            Generar PDF Cotización
           </button>
-          <button type="button" id="btnLimpiarCarrito" class="btn btn-secondary">
+          <button type="button" id="btnLimpiarCotizacion" class="btn btn-secondary">
             <span class="btn-icon">🗑️</span>
-            Limpiar Todo
+            Limpiar Cotización
           </button>
         </div>
       </div>
@@ -153,11 +181,12 @@
           </label>
           <select id="tipoServicio" class="select-servicio">
             <option value="">-- Selecciona un servicio --</option>
-            <option value="impresion">📄 Impresiones (Carta)</option>
+            <option value="impresion">📄 Impresiones</option>
             <option value="encuadernado">📚 Encuadernado Espiral</option>
             <option value="empastado">📕 Empastado</option>
             <option value="ploteo">🖼️ Ploteo</option>
             <option value="plastificado">💳 Plastificado</option>
+            <option value="libro">📘 Libro Completo (con Terminación)</option>
           </select>
         </div>
 
@@ -167,8 +196,21 @@
         <div id="formImpresion" class="form-servicio" style="display: none;">
           <h3 class="form-title">
             <span class="title-icon">📄</span>
-            Impresiones Carta (8.5x11)
+            Impresiones
           </h3>
+
+          <!-- Tamaño -->
+          <div class="form-group">
+            <label for="tamanoImpresion">
+              <span class="label-icon">📐</span>
+              Tamaño
+            </label>
+            <select id="tamanoImpresion">
+              <option value="carta">Carta (8½ x 11)</option>
+              <option value="legal">Legal (8½ x 14)</option>
+              <option value="tabloide">Tabloide (11 x 17)</option>
+            </select>
+          </div>
 
           <!-- Tipo de impresión -->
           <div class="form-group">
@@ -180,6 +222,7 @@
               <option value="bn">Blanco y Negro</option>
               <option value="color">Color</option>
               <option value="full_color">Full Color</option>
+              <option value="especial">Cartonite/Satinado/Adhesivo</option>
             </select>
           </div>
 
@@ -190,7 +233,7 @@
               Caras
             </label>
             <select id="caras">
-              <option value="doble">Doble cara (más común)</option>
+              <option value="doble">Doble cara</option>
               <option value="simple">Simple cara</option>
             </select>
           </div>
@@ -209,6 +252,18 @@
               placeholder="Ej: 50"
             />
             <small class="form-hint">El precio se ajusta según la cantidad</small>
+          </div>
+
+          <!-- Precio calculado en tiempo real -->
+          <div class="precio-calculado" id="precioImpresion" style="display: none;">
+            <div class="precio-info">
+              <span class="precio-label">Precio unitario:</span>
+              <span class="precio-valor" id="precioUnitarioImpresion">RD$0.00</span>
+            </div>
+            <div class="precio-info">
+              <span class="precio-label">Total estimado:</span>
+              <span class="precio-valor" id="precioTotalImpresion">RD$0.00</span>
+            </div>
           </div>
 
           <!-- Precio personalizado (opcional) -->
@@ -254,10 +309,11 @@
               type="number" 
               id="paginasEncuadernado" 
               min="1" 
+              max="1000"
               value="100"
               placeholder="Ej: 100"
             />
-            <small class="form-hint">Recuerda: 50 hojas = 100 páginas (doble cara)</small>
+            <small class="form-hint">Máximo 1000 páginas</small>
           </div>
 
           <!-- Cantidad de encuadernados -->
@@ -273,6 +329,18 @@
               value="1"
               placeholder="Ej: 3"
             />
+          </div>
+
+          <!-- Precio calculado en tiempo real -->
+          <div class="precio-calculado" id="precioEncuadernado" style="display: none;">
+            <div class="precio-info">
+              <span class="precio-label">Precio unitario:</span>
+              <span class="precio-valor" id="precioUnitarioEncuadernado">RD$0.00</span>
+            </div>
+            <div class="precio-info">
+              <span class="precio-label">Total estimado:</span>
+              <span class="precio-valor" id="precioTotalEncuadernado">RD$0.00</span>
+            </div>
           </div>
 
           <!-- Precio personalizado -->
@@ -330,6 +398,7 @@
               <option value="legal">Legal (8.5x14)</option>
               <option value="tabloide">Tabloide (11x17)</option>
             </select>
+            <small class="form-hint">Tapa blanda solo disponible en carta</small>
           </div>
 
           <!-- Cantidad -->
@@ -344,6 +413,18 @@
               min="1" 
               value="1"
             />
+          </div>
+
+          <!-- Precio calculado en tiempo real -->
+          <div class="precio-calculado" id="precioEmpastado" style="display: none;">
+            <div class="precio-info">
+              <span class="precio-label">Precio unitario:</span>
+              <span class="precio-valor" id="precioUnitarioEmpastado">RD$0.00</span>
+            </div>
+            <div class="precio-info">
+              <span class="precio-label">Total estimado:</span>
+              <span class="precio-valor" id="precioTotalEmpastado">RD$0.00</span>
+            </div>
           </div>
 
           <!-- Precio personalizado -->
@@ -466,6 +547,18 @@
             />
           </div>
 
+          <!-- Precio calculado en tiempo real -->
+          <div class="precio-calculado" id="precioPloteo" style="display: none;">
+            <div class="precio-info">
+              <span class="precio-label">Precio unitario:</span>
+              <span class="precio-valor" id="precioUnitarioPloteo">RD$0.00</span>
+            </div>
+            <div class="precio-info">
+              <span class="precio-label">Total estimado:</span>
+              <span class="precio-valor" id="precioTotalPloteo">RD$0.00</span>
+            </div>
+          </div>
+
           <!-- Precio personalizado -->
           <div class="form-group">
             <label for="precioPersonalPloteo">
@@ -505,8 +598,10 @@
               Tamaño
             </label>
             <select id="tamanoPlastificado">
+              <option value="cedula">Cédula - RD$30</option>
               <option value="carta">Carta (8.5x11) - RD$40</option>
-              <option value="tabloide">Tabloide (11x17) - RD$80</option>
+              <option value="legal">Legal (8.5x14) - RD$50</option>
+              <option value="tabloide">Tabloide (11x17) - RD$60</option>
             </select>
           </div>
 
@@ -518,8 +613,9 @@
             </label>
             <select id="llevaCorte">
               <option value="no">No</option>
-              <option value="si">Sí</option>
+              <option value="si">Sí (se cobra por pieza individual)</option>
             </select>
+            <small class="form-hint">Ejemplo: 10 hojas × 4 tarjetas = se cobra por 40 tarjetas</small>
           </div>
 
           <!-- Cantidad de piezas (si lleva corte) -->
@@ -533,9 +629,9 @@
               id="cantidadPiezas" 
               min="1" 
               value="2"
-              placeholder="Ej: 2 tarjetas"
+              placeholder="Ej: 4 tarjetas por hoja"
             />
-            <small class="form-hint">Se dividirá el precio entre las piezas</small>
+            <small class="form-hint">¿Cuántas piezas se cortan de cada hoja?</small>
           </div>
 
           <!-- Cantidad de hojas -->
@@ -550,6 +646,18 @@
               min="1" 
               value="1"
             />
+          </div>
+
+          <!-- Precio calculado en tiempo real -->
+          <div class="precio-calculado" id="precioPlastificado" style="display: none;">
+            <div class="precio-info">
+              <span class="precio-label">Precio unitario:</span>
+              <span class="precio-valor" id="precioUnitarioPlastificado">RD$0.00</span>
+            </div>
+            <div class="precio-info">
+              <span class="precio-label">Total estimado:</span>
+              <span class="precio-valor" id="precioTotalPlastificado">RD$0.00</span>
+            </div>
           </div>
 
           <!-- Precio personalizado -->
@@ -574,12 +682,291 @@
             Agregar al Carrito
           </button>
         </div>
+        
+
+        <!-- ========================================
+             📘 FORMULARIO: LIBRO COMPLETO (MEJORADO)
+             ======================================== -->
+        <div id="formLibro" class="form-servicio" style="display: none;">
+          <h3 class="form-title">
+            <span class="title-icon">📘</span>
+            Libro Completo (Impresión + Terminación)
+          </h3>
+
+          <div class="info-box">
+            <p><strong>💡 Ejemplo:</strong> 1 portada a color + 99 páginas B/N + encuadernado = 100 páginas totales</p>
+          </div>
+
+          <!-- SECCIÓN: IMPRESIÓN BLANCO Y NEGRO -->
+          <div class="form-section">
+            <h4 class="section-subtitle">
+              <span class="subtitle-icon">⚫</span>
+              Páginas Blanco y Negro
+            </h4>
+            
+            <div class="form-group">
+              <label for="libroPaginasBN">
+                <span class="label-icon">🔢</span>
+                Cantidad de páginas B/N
+              </label>
+              <input 
+                type="number" 
+                id="libroPaginasBN" 
+                min="0" 
+                value="0"
+                placeholder="Ej: 99"
+              />
+              <small class="form-hint">Deja en 0 si no hay páginas B/N</small>
+            </div>
+          </div>
+
+          <!-- SECCIÓN: IMPRESIÓN COLOR -->
+          <div class="form-section">
+            <h4 class="section-subtitle">
+              <span class="subtitle-icon">🎨</span>
+              Páginas a Color
+            </h4>
+            
+            <div class="form-group">
+              <label for="libroPaginasColor">
+                <span class="label-icon">🔢</span>
+                Cantidad de páginas a Color
+              </label>
+              <input 
+                type="number" 
+                id="libroPaginasColor" 
+                min="0" 
+                value="0"
+                placeholder="Ej: 1 (portada)"
+              />
+              <small class="form-hint">Deja en 0 si no hay páginas a color</small>
+            </div>
+          </div>
+
+          <!-- SECCIÓN: IMPRESIÓN FULL COLOR -->
+          <div class="form-section">
+            <h4 class="section-subtitle">
+              <span class="subtitle-icon">🌈</span>
+              Páginas Full Color
+            </h4>
+            
+            <div class="form-group">
+              <label for="libroPaginasFullColor">
+                <span class="label-icon">🔢</span>
+                Cantidad de páginas Full Color
+              </label>
+              <input 
+                type="number" 
+                id="libroPaginasFullColor" 
+                min="0" 
+                value="0"
+                placeholder="Ej: 0"
+              />
+              <small class="form-hint">Deja en 0 si no hay páginas full color</small>
+            </div>
+          </div>
+
+          <!-- SECCIÓN: CONFIGURACIÓN GENERAL -->
+          <div class="form-section">
+            <h4 class="section-subtitle">
+              <span class="subtitle-icon">⚙️</span>
+              Configuración del Libro
+            </h4>
+
+            <div class="form-group">
+              <label for="libroTamano">
+                <span class="label-icon">📐</span>
+                Tamaño
+              </label>
+              <select id="libroTamano">
+                <option value="carta">Carta (8½ x 11)</option>
+                <option value="legal">Legal (8½ x 14)</option>
+                <option value="tabloide">Tabloide (11 x 17)</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="libroTerminacion">
+                <span class="label-icon">📚</span>
+                Terminación
+              </label>
+              <select id="libroTerminacion">
+                <option value="ninguna">Sin terminación (solo impresión)</option>
+                <option value="espiral">Encuadernado espiral</option>
+                <option value="tapa_blanda">Empastado tapa blanda</option>
+                <option value="tapa_dura">Empastado tapa dura</option>
+              </select>
+              <small class="form-hint">Tapa blanda solo disponible en carta</small>
+            </div>
+
+            <div class="form-group">
+              <label for="libroJuegos">
+                <span class="label-icon">📚</span>
+                Número de copias/juegos
+              </label>
+              <input 
+                type="number" 
+                id="libroJuegos" 
+                min="1" 
+                value="1"
+                placeholder="¿Cuántos libros iguales?"
+              />
+              <small class="form-hint">Todos los costos se multiplicarán por este número</small>
+            </div>
+          </div>
+
+          <!-- RESUMEN AUTOMÁTICO -->
+          <div class="resumen-libro" id="resumenLibro" style="display: none;">
+            <h4 class="resumen-title">📊 Resumen del Libro</h4>
+            <div class="resumen-content" id="resumenContent"></div>
+          </div>
+
+          <button type="button" class="btn btn-add" onclick="agregarLibro()">
+            <span class="btn-icon">➕</span>
+            Agregar Libro al Carrito
+          </button>
+        </div>
+
       </div>
 
+      
     </section>
-
   </main>
 
+
+
+  <style>
+  /* BOTÓN FLOTANTE */
+  .btn-admin-precios {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: #6c63ff;
+    color: #fff;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 30px;
+    font-weight: bold;
+    cursor: pointer;
+    z-index: 9999;
+  }
+
+  /* FONDO MODAL */
+  .modal-precios {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 10000;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .modal-precios.show {
+    display: flex;
+  }
+
+  /* CONTENIDO */
+  .modal-precios-content {
+    background: #fff;
+    width: 95%;
+    max-width: 1100px;
+    max-height: 90vh;
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .modal-precios-header {
+    background: #6c63ff;
+    color: white;
+    padding: 16px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .modal-precios-body {
+    padding: 20px;
+    overflow-y: auto;
+    flex: 1;
+  }
+
+  .modal-precios-footer {
+    padding: 12px;
+    background: #f4f4f4;
+    text-align: center;
+  }
+
+  .btn-cerrar-modal {
+    background: transparent;
+    border: 2px solid white;
+    color: white;
+    border-radius: 50%;
+    width: 34px;
+    height: 34px;
+    cursor: pointer;
+    font-size: 16px;
+  }
+</style>
+
+
+  <!-- Scripts para PDF -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
   <script src="scriptgeneral.js"></script>
+  
+  <!-- Script para actualizar resumen del libro en tiempo real -->
+<script>
+  // ===============================
+  // MODAL TABLA DE PRECIOS (ADMIN)
+  // ===============================
+
+  function abrirModalPrecios() {
+    const modal = document.getElementById('modalPrecios');
+    if (modal) {
+      modal.classList.add('show');
+      document.body.style.overflow = 'hidden';
+    }
+  }
+
+  function cerrarModalPrecios() {
+    const modal = document.getElementById('modalPrecios');
+    if (modal) {
+      modal.classList.remove('show');
+      document.body.style.overflow = 'auto';
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const btnVerPrecios = document.getElementById('btnVerPrecios');
+    const modal = document.getElementById('modalPrecios');
+
+    // Abrir modal
+    if (btnVerPrecios) {
+      btnVerPrecios.addEventListener('click', abrirModalPrecios);
+    }
+
+    // Cerrar al hacer click fuera del contenido
+    if (modal) {
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+          cerrarModalPrecios();
+        }
+      });
+    }
+
+    // Cerrar con ESC
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        cerrarModalPrecios();
+      }
+    });
+  });
+</script>
+
 </body>
 </html>

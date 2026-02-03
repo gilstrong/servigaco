@@ -6,34 +6,86 @@ let cotizacion = [];
 console.log('🚀 Script cargando...');
 
 // ============================================
-// 💰 TABLAS DE PRECIOS
+// 💰 TABLAS DE PRECIOS ACTUALIZADAS
 // ============================================
 
-// Impresiones B/N (precio por página)
-// 1-200: 2.50, 201-300: 2.00, 301+: 1.75
-const preciosBN = [
-  { min: 1, max: 200, precio: 2.50 },
-  { min: 201, max: 300, precio: 2.00 },
-  { min: 301, max: Infinity, precio: 1.75 }
-];
+// IMPRESIONES B/N (Blanco y Negro)
+const preciosBN = {
+  'carta': [
+    { min: 1, max: 50, precio: 2.50 },
+    { min: 51, max: 200, precio: 2.00 },
+    { min: 201, max: Infinity, precio: 1.75 }
+  ],
+  'legal': [
+    { min: 1, max: 50, precio: 10.00 },
+    { min: 51, max: 200, precio: 8.00 },
+    { min: 201, max: Infinity, precio: 6.00 }
+  ],
+  'tabloide': [
+    { min: 1, max: 50, precio: 20.00 },
+    { min: 51, max: 200, precio: 15.00 },
+    { min: 201, max: Infinity, precio: 10.00 }
+  ]
+};
 
-// Impresiones Color (precio por página)
-// 1-50: 15, 51-200: 12, 201-400: 10, 401+: 8
-const preciosColor = [
-  { min: 1, max: 50, precio: 15 },
-  { min: 51, max: 200, precio: 12 },
-  { min: 201, max: 400, precio: 10 },
-  { min: 401, max: Infinity, precio: 8 }
-];
+// IMPRESIONES COLOR (papel bond)
+const preciosColor = {
+  'carta': [
+    { min: 1, max: 50, precio: 15.00 },
+    { min: 51, max: 200, precio: 10.00 },
+    { min: 201, max: Infinity, precio: 8.00 }
+  ],
+  'legal': [
+    { min: 1, max: 50, precio: 30.00 },
+    { min: 51, max: 200, precio: 25.00 },
+    { min: 201, max: Infinity, precio: 20.00 }
+  ],
+  'tabloide': [
+    { min: 1, max: 50, precio: 40.00 },
+    { min: 51, max: 200, precio: 35.00 },
+    { min: 201, max: Infinity, precio: 30.00 }
+  ]
+};
 
-// Impresiones Full Color (precio por página)
-// Todas a 20
-const preciosFullColor = [
-  { min: 1, max: Infinity, precio: 20 }
-];
+// IMPRESIONES FULL COLOR (papel bond)
+const preciosFullColor = {
+  'carta': [
+    { min: 1, max: 50, precio: 20.00 },
+    { min: 51, max: 200, precio: 18.00 },
+    { min: 201, max: Infinity, precio: 15.00 }
+  ],
+  'legal': [
+    { min: 1, max: 50, precio: 35.00 },
+    { min: 51, max: 200, precio: 30.00 },
+    { min: 201, max: Infinity, precio: 25.00 }
+  ],
+  'tabloide': [
+    { min: 1, max: 50, precio: 60.00 },
+    { min: 51, max: 200, precio: 50.00 },
+    { min: 201, max: Infinity, precio: 40.00 }
+  ]
+};
+
+// IMPRESIONES EN CARTONITE, SATINADO Y ADHESIVO
+const preciosEspeciales = {
+  'carta': [
+    { min: 1, max: 50, precio: 35.00 },
+    { min: 51, max: 200, precio: 30.00 },
+    { min: 201, max: Infinity, precio: 25.00 }
+  ],
+  'legal': [
+    { min: 1, max: 50, precio: 45.00 },
+    { min: 51, max: 200, precio: 40.00 },
+    { min: 201, max: Infinity, precio: 35.00 }
+  ],
+  'tabloide': [
+    { min: 1, max: 50, precio: 70.00 },
+    { min: 51, max: 200, precio: 60.00 },
+    { min: 201, max: Infinity, precio: 50.00 }
+  ]
+};
 
 // Encuadernado Espiral (precio por encuadernado según páginas)
-// Hasta 100: 60, hasta 160: 70, hasta 200: 80, hasta 300: 100, hasta 400: 120, hasta 500: 150, hasta 1000: 250
 const preciosEncuadernado = [
   { min: 1, max: 100, precio: 60 },
   { min: 101, max: 160, precio: 70 },
@@ -52,24 +104,45 @@ const preciosEmpastado = {
 
 // Plastificado (precio base por tamaño)
 const preciosPlastificado = {
+  cedula: 30,
   carta: 40,
-  tabloide: 80
+  legal: 50,
+  tabloide: 60
 };
 
 // ============================================
 // 🧮 FUNCIONES DE CÁLCULO
 // ============================================
 
-function calcularPrecioImpresion(cantidad, tipo) {
-  let tabla;
+function calcularPrecioImpresion(cantidad, tipo, tamano) {
+  let tablaPrecios;
+  
   switch (tipo) {
-    case 'bn': tabla = preciosBN; break;
-    case 'color': tabla = preciosColor; break;
-    case 'full_color': tabla = preciosFullColor; break;
-    default: return 0;
+    case 'bn':
+      tablaPrecios = preciosBN[tamano];
+      break;
+    case 'color':
+      tablaPrecios = preciosColor[tamano];
+      break;
+    case 'full_color':
+      tablaPrecios = preciosFullColor[tamano];
+      break;
+    case 'especial':
+      tablaPrecios = preciosEspeciales[tamano];
+      break;
+    default:
+      return 0;
   }
-  const rango = tabla.find(r => cantidad >= r.min && cantidad <= r.max);
-  return rango ? cantidad * rango.precio : 0;
+  
+  if (!tablaPrecios) return 0;
+  
+  // Buscar el rango correspondiente
+  const rango = tablaPrecios.find(r => cantidad >= r.min && cantidad <= r.max);
+  
+  if (!rango) return 0;
+  
+  // Precio total = cantidad × precio unitario del rango
+  return cantidad * rango.precio;
 }
 
 function calcularPrecioEncuadernado(paginas) {
@@ -151,9 +224,11 @@ function calcularPrecioPlastificado(tamano, llevaCorte, cantidadHojas, piezasPor
   const precioBase = preciosPlastificado[tamano] || 0;
   
   if (llevaCorte) {
-    // Si lleva corte, el precio total es precio base × cantidad de hojas
-    return precioBase * cantidadHojas;
+    // Si lleva corte, se cobra por cada pieza individual
+    const totalPiezas = cantidadHojas * piezasPorHoja;
+    return precioBase * totalPiezas;
   } else {
+    // Sin corte, se cobra por hoja completa
     return precioBase * cantidadHojas;
   }
 }
@@ -184,34 +259,42 @@ function limpiarCotizacion() {
 }
 
 function actualizarCotizacion() {
-  const container = document.getElementById('carritoItems');
-  const contador = document.getElementById('carritoCount');
+  const contador = document.getElementById('cotizacionCount');
+  const cuerpoTabla = document.getElementById('cotizacionBody');
+  const footerTabla = document.getElementById('cotizacionFooter');
   const subtotalEl = document.getElementById('subtotalAmount');
   const impuestoEl = document.getElementById('impuestoAmount');
   const impuestoRow = document.getElementById('impuestoRow');
   const subtotalRow = document.getElementById('subtotalRow');
   const totalEl = document.getElementById('totalAmount');
   const comprobanteSection = document.getElementById('comprobanteSection');
-  const carritoTotal = document.getElementById('carritoTotal');
-  const carritoAcciones = document.getElementById('carritoAcciones');
+  const cotizacionAcciones = document.getElementById('cotizacionAcciones');
 
   if (contador) contador.textContent = cotizacion.length;
 
   if (cotizacion.length === 0) {
-    if (container) container.innerHTML = `<div class="carrito-vacio"><span class="empty-icon">📭</span><p>No hay servicios agregados</p><p class="empty-hint">Selecciona un servicio abajo para empezar</p></div>`;
-    if (subtotalEl) subtotalEl.textContent = 'RD$0.00';
-    if (totalEl) totalEl.textContent = 'RD$0.00';
-    if (subtotalRow) subtotalRow.style.display = 'none';
-    if (impuestoRow) impuestoRow.style.display = 'none';
+    if (cuerpoTabla) {
+      cuerpoTabla.innerHTML = `
+        <tr class="cotizacion-vacia">
+          <td colspan="6">
+            <div class="empty-cotizacion">
+              <span class="empty-icon">📭</span>
+              <p>No hay servicios en la cotización</p>
+              <p class="empty-hint">Selecciona un servicio abajo para empezar</p>
+            </div>
+          </td>
+        </tr>
+      `;
+    }
+    if (footerTabla) footerTabla.style.display = 'none';
     if (comprobanteSection) comprobanteSection.style.display = 'none';
-    if (carritoTotal) carritoTotal.style.display = 'none';
-    if (carritoAcciones) carritoAcciones.style.display = 'none';
+    if (cotizacionAcciones) cotizacionAcciones.style.display = 'none';
     return;
   }
 
   if (comprobanteSection) comprobanteSection.style.display = 'block';
-  if (carritoTotal) carritoTotal.style.display = 'block';
-  if (carritoAcciones) carritoAcciones.style.display = 'flex';
+  if (cotizacionAcciones) cotizacionAcciones.style.display = 'flex';
+  if (footerTabla) footerTabla.style.display = 'table-footer-group';
 
   const subtotal = cotizacion.reduce((sum, item) => sum + item.precio, 0);
   const tipoComp = document.getElementById('tipoComprobante')?.value || 'ninguno';
@@ -224,12 +307,12 @@ function actualizarCotizacion() {
   const total = subtotal + impuesto;
 
   if (subtotalEl) subtotalEl.textContent = `RD$${subtotal.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}`;
-  
+
   if (tipoComp !== 'ninguno') {
-    if (subtotalRow) subtotalRow.style.display = 'flex';
+    if (subtotalRow) subtotalRow.style.display = 'table-row';
     if (impuestoRow) {
-      impuestoRow.style.display = 'flex';
-      const label = impuestoRow.querySelector('.impuesto-label');
+      impuestoRow.style.display = 'table-row';
+      const label = impuestoRow.querySelector('.total-label');
       if (label) label.textContent = nombreImpuesto + ':';
       if (impuestoEl) impuestoEl.textContent = `RD$${impuesto.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}`;
     }
@@ -237,21 +320,21 @@ function actualizarCotizacion() {
     if (subtotalRow) subtotalRow.style.display = 'none';
     if (impuestoRow) impuestoRow.style.display = 'none';
   }
-  
+
   if (totalEl) totalEl.textContent = `RD$${total.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}`;
 
-  if (container) {
-    container.innerHTML = cotizacion.map((item, i) => `
-      <div class="carrito-item">
-        <div class="item-info">
-          <h4>${item.nombre}</h4>
-          <p>${item.descripcion}</p>
-        </div>
-        <div class="item-precio">
-          <span>RD$${item.precio.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}</span>
-          <button class="btn-eliminar" onclick="eliminarDeCotizacion(${i})">🗑️</button>
-        </div>
-      </div>
+  if (cuerpoTabla) {
+    cuerpoTabla.innerHTML = cotizacion.map((item, i) => `
+      <tr>
+        <td><strong>${item.nombre}</strong></td>
+        <td>${item.descripcion}</td>
+        <td style="text-align: center;">${item.cantidad || 1}</td>
+        <td style="text-align: center;">RD$${(item.precioUnitario || item.precio).toFixed(2)}</td>
+        <td style="text-align: center;"><strong>RD$${item.precio.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}</strong></td>
+        <td style="text-align: center;">
+          <button class="btn-eliminar" onclick="eliminarDeCotizacion(${i})" title="Eliminar">🗑️</button>
+        </td>
+      </tr>
     `).join('');
   }
 }
@@ -263,24 +346,38 @@ function actualizarCotizacion() {
 function agregarImpresion() {
   const cant = parseInt(document.getElementById('cantidadPaginas')?.value);
   const tipo = document.getElementById('tipoImpresion')?.value;
+  const tamano = document.getElementById('tamanoImpresion')?.value;
   const caras = document.getElementById('caras')?.value;
   const manual = parseFloat(document.getElementById('precioPersonalImpresion')?.value || 0);
 
   if (!cant || cant <= 0) { alert('Cantidad inválida'); return; }
+  if (!tipo) { alert('Seleccione el tipo de impresión'); return; }
+  if (!tamano) { alert('Seleccione el tamaño'); return; }
 
-  const tipos = { bn: 'B/N', color: 'Color', full_color: 'Full Color' };
+  const tipos = { 
+    bn: 'B/N', 
+    color: 'Color', 
+    full_color: 'Full Color',
+    especial: 'Cartonite/Satinado/Adhesivo'
+  };
+  
+  const tamanos = {
+    carta: '8½ x 11 (Carta)',
+    legal: '8½ x 14 (Legal)',
+    tabloide: '11 x 17 (Tabloide)'
+  };
+  
   let precio;
   
+  // ✅ CORRECCIÓN: Precio manual es POR PÁGINA
   if (manual) {
-    precio = manual;
+    precio = manual * cant; // Precio manual × cantidad de páginas
   } else {
-    // Calcular precio base (por páginas)
-    precio = calcularPrecioImpresion(cant, tipo);
+    precio = calcularPrecioImpresion(cant, tipo, tamano);
     
-    // Si es doble cara, dividir entre 2 porque cada hoja tiene 2 páginas
-    // El precio es por página, pero se cobra por hoja
-    if (caras === 'doble') {
-      precio = precio / 2;
+    if (precio === 0) {
+      alert('No se pudo calcular el precio. Use precio personalizado.');
+      return;
     }
   }
 
@@ -289,10 +386,157 @@ function agregarImpresion() {
   
   agregarACotizacion({ 
     nombre: `Impresión ${tipos[tipo]}`, 
-    descripcion: `${cant} páginas (${hojas} hojas) ${carasTexto}`, 
+    descripcion: `${cant} páginas (${hojas} hojas) · ${tamanos[tamano]} · ${carasTexto}`, 
+    cantidad: cant,
+    precioUnitario: precio / cant,
     precio 
   });
   limpiarFormulario('formImpresion');
+}
+
+
+
+// ============================================
+// 📘 FUNCIÓN MEJORADA: LIBRO COMPLETO
+// Permite especificar páginas B/N, Color y Full Color por separado
+// ============================================
+
+function agregarLibro() {
+  // Obtener valores de los campos
+  const paginasBN = parseInt(document.getElementById('libroPaginasBN')?.value || 0);
+  const paginasColor = parseInt(document.getElementById('libroPaginasColor')?.value || 0);
+  const paginasFullColor = parseInt(document.getElementById('libroPaginasFullColor')?.value || 0);
+  const tamano = document.getElementById('libroTamano')?.value || 'carta';
+  const tipoTerminacion = document.getElementById('libroTerminacion')?.value || 'ninguna';
+  const juegos = parseInt(document.getElementById('libroJuegos')?.value || 1);
+
+  // Validaciones
+  const totalPaginas = paginasBN + paginasColor + paginasFullColor;
+  
+  if (totalPaginas === 0) {
+    alert('Debe especificar al menos 1 página (B/N, Color o Full Color)');
+    return;
+  }
+
+  if (!juegos || juegos <= 0) {
+    alert('Número de juegos inválido');
+    return;
+  }
+
+  // Validar tapa blanda solo para carta
+  if (tipoTerminacion === 'tapa_blanda' && tamano !== 'carta') {
+    alert('Empastado tapa blanda solo disponible para tamaño carta');
+    return;
+  }
+
+  // Validar límite de encuadernado espiral
+  if (tipoTerminacion === 'espiral' && totalPaginas > 1000) {
+    alert('El encuadernado espiral tiene un límite de 1000 páginas totales');
+    return;
+  }
+
+  // ===============================================
+  // CALCULAR COSTOS POR SEPARADO
+  // ===============================================
+  
+  let costoBN = 0;
+  let costoColor = 0;
+  let costoFullColor = 0;
+  let costoTerminacion = 0;
+
+  // 1. Calcular costo de impresión B/N
+  if (paginasBN > 0) {
+    costoBN = calcularPrecioImpresion(paginasBN, 'bn', tamano);
+  }
+
+  // 2. Calcular costo de impresión Color
+  if (paginasColor > 0) {
+    costoColor = calcularPrecioImpresion(paginasColor, 'color', tamano);
+  }
+
+  // 3. Calcular costo de impresión Full Color
+  if (paginasFullColor > 0) {
+    costoFullColor = calcularPrecioImpresion(paginasFullColor, 'full_color', tamano);
+  }
+
+  // 4. Calcular costo de terminación (si aplica)
+  if (tipoTerminacion === 'espiral') {
+    costoTerminacion = calcularPrecioEncuadernado(totalPaginas);
+  } else if (tipoTerminacion === 'tapa_dura') {
+    costoTerminacion = calcularPrecioEmpastado('Tapa Dura', tamano);
+  } else if (tipoTerminacion === 'tapa_blanda') {
+    costoTerminacion = calcularPrecioEmpastado('Tapa Blanda', tamano);
+  }
+
+  // 5. Costo total por libro individual
+  const costoPorLibro = costoBN + costoColor + costoFullColor + costoTerminacion;
+
+  // 6. Costo total (multiplicado por cantidad de juegos)
+  const costoTotal = costoPorLibro * juegos;
+
+  // ===============================================
+  // CONSTRUIR DESCRIPCIÓN DETALLADA
+  // ===============================================
+  
+  const tamanos = {
+    carta: '8½ x 11',
+    legal: '8½ x 14',
+    tabloide: '11 x 17'
+  };
+
+  const terminacionTexto = {
+    'espiral': 'Encuadernado espiral',
+    'tapa_dura': 'Empastado tapa dura',
+    'tapa_blanda': 'Empastado tapa blanda',
+    'ninguna': 'Sin terminación'
+  };
+
+  // Construir descripción detallada
+  let descripcion = `${juegos} libro(s) · ${totalPaginas} páginas totales · ${tamanos[tamano]}`;
+  
+  // Desglose de páginas
+  let desglosePaginas = [];
+  if (paginasBN > 0) desglosePaginas.push(`${paginasBN} B/N`);
+  if (paginasColor > 0) desglosePaginas.push(`${paginasColor} Color`);
+  if (paginasFullColor > 0) desglosePaginas.push(`${paginasFullColor} Full Color`);
+  
+  if (desglosePaginas.length > 0) {
+    descripcion += `\n(${desglosePaginas.join(' + ')})`;
+  }
+  
+  descripcion += `\n${terminacionTexto[tipoTerminacion]}`;
+
+  // Desglose de costos (opcional, para transparencia)
+  let desgloseCostos = [];
+  if (costoBN > 0) desgloseCostos.push(`B/N: RD$${costoBN.toFixed(2)}`);
+  if (costoColor > 0) desgloseCostos.push(`Color: RD$${costoColor.toFixed(2)}`);
+  if (costoFullColor > 0) desgloseCostos.push(`Full Color: RD$${costoFullColor.toFixed(2)}`);
+  if (costoTerminacion > 0) desgloseCostos.push(`${terminacionTexto[tipoTerminacion]}: RD$${costoTerminacion.toFixed(2)}`);
+  
+  if (desgloseCostos.length > 0 && juegos === 1) {
+    descripcion += `\n[${desgloseCostos.join(' + ')}]`;
+  } else if (desgloseCostos.length > 0 && juegos > 1) {
+    descripcion += `\nCosto unitario: RD$${costoPorLibro.toFixed(2)}`;
+  }
+
+  // ===============================================
+  // AGREGAR A COTIZACIÓN
+  // ===============================================
+  
+  agregarACotizacion({
+    nombre: '📘 Libro Completo',
+    descripcion: descripcion,
+    cantidad: juegos,
+    precioUnitario: costoPorLibro,
+    precio: costoTotal
+  });
+
+  // Limpiar formulario
+  limpiarFormulario('formLibro');
+  
+  // Ocultar resumen
+  const resumenDiv = document.getElementById('resumenLibro');
+  if (resumenDiv) resumenDiv.style.display = 'none';
 }
 
 function agregarEncuadernado() {
@@ -303,12 +547,32 @@ function agregarEncuadernado() {
   if (!pag || pag <= 0) { alert('Páginas inválidas'); return; }
   if (!cant || cant <= 0) { alert('Cantidad inválida'); return; }
 
-  const precioUnitario = manual || calcularPrecioEncuadernado(pag);
-  const precioTotal = precioUnitario * cant;
+  // Validar límite máximo
+  if (pag > 1000 && !manual) {
+    alert('El encuadernado espiral tiene un límite de 1000 páginas. Use precio personalizado para cantidades mayores.');
+    return;
+  }
+
+  // ✅ CORRECCIÓN: Precio manual es POR UNIDAD
+  let precioUnitario;
+  if (manual) {
+    precioUnitario = manual; // Precio manual es por encuadernado
+  } else {
+    precioUnitario = calcularPrecioEncuadernado(pag);
+  }
+  
+  if (precioUnitario === 0 && !manual) {
+    alert('No se puede calcular el precio. Use precio personalizado.');
+    return;
+  }
+  
+  const precioTotal = precioUnitario * cant; // ✅ SIEMPRE multiplica
 
   agregarACotizacion({ 
     nombre: 'Encuadernado Espiral', 
     descripcion: `${cant} encuadernado(s) de ${pag} páginas`, 
+    cantidad: cant,
+    precioUnitario: precioUnitario,
     precio: precioTotal 
   });
   limpiarFormulario('formEncuadernado');
@@ -324,19 +588,34 @@ function agregarEmpastado() {
 
   const tipoMap = { tapa_dura: 'Tapa Dura', tapa_blanda: 'Tapa Blanda' };
   const tipo = tipoMap[tipoRaw];
-  const precioUnitario = manual || calcularPrecioEmpastado(tipo, tam);
   
-  if (precioUnitario === 0 && !manual) {
-    alert('Este tamaño no está disponible para tapa blanda. Use precio personalizado.');
+  // Validar tapa blanda solo para carta
+  if (tipoRaw === 'tapa_blanda' && tam !== 'carta') {
+    alert('Empastado tapa blanda solo disponible para tamaño carta. Use precio personalizado o seleccione otro tamaño.');
     return;
   }
   
-  const precioTotal = precioUnitario * cant;
+  // ✅ CORRECCIÓN: Precio manual es POR UNIDAD
+  let precioUnitario;
+  if (manual) {
+    precioUnitario = manual; // Precio manual es por empastado
+  } else {
+    precioUnitario = calcularPrecioEmpastado(tipo, tam);
+  }
+  
+  if (precioUnitario === 0 && !manual) {
+    alert('Este tamaño no está disponible para este tipo. Use precio personalizado.');
+    return;
+  }
+  
+  const precioTotal = precioUnitario * cant; // ✅ SIEMPRE multiplica
   const tamanoTexto = tam === 'carta' ? '8.5x11' : tam === 'legal' ? '8.5x14' : '11x17';
 
   agregarACotizacion({ 
     nombre: `Empastado ${tipo}`, 
     descripcion: `${cant} empastado(s) ${tamanoTexto}`, 
+    cantidad: cant,
+    precioUnitario: precioUnitario,
     precio: precioTotal 
   });
   limpiarFormulario('formEmpastado');
@@ -357,8 +636,9 @@ function agregarPloteo() {
   let precio;
   let desc;
   
+  // ✅ CORRECCIÓN: Precio manual es POR UNIDAD
   if (manual) {
-    precio = manual;
+    precio = manual * cant; // Precio manual × cantidad
   } else if (tipoTam === 'personalizado') {
     precio = calcularPrecioPloteo(tipoPloteo, 'custom', cant, ancho, alto);
   } else {
@@ -380,7 +660,7 @@ function agregarPloteo() {
     `${cant} ${tipoTexto[tipoPloteo]} · ${ancho}" x ${alto}"` : 
     `${cant} ${tipoTexto[tipoPloteo]} · ${tam}"`;
 
-  agregarACotizacion({ nombre: 'Ploteo', descripcion: desc, precio });
+  agregarACotizacion({ nombre: 'Ploteo', descripcion: desc, cantidad: cant, precioUnitario: precioUnitario, precio });
   limpiarFormulario('formPloteo');
 }
 
@@ -394,14 +674,31 @@ function agregarPlastificado() {
   if (!cant || cant <= 0) { alert('Cantidad inválida'); return; }
   if (corte && (!piezas || piezas <= 0)) { alert('Cantidad de piezas inválida'); return; }
 
-  const tamanoTexto = tam === 'carta' ? 'Carta (8.5x11)' : 'Tabloide (11x17)';
-  const desc = corte ? 
-    `${cant * piezas} piezas plastificadas y cortadas (${cant} hojas ${tamanoTexto}, ${piezas} piezas/hoja)` :
-    `${cant} hoja(s) plastificadas ${tamanoTexto}`;
+  const tamanoTexto = {
+    cedula: 'Cédula',
+    carta: 'Carta (8.5x11)',
+    legal: 'Legal (8.5x14)',
+    tabloide: 'Tabloide (11x17)'
+  };
   
-  const precioTotal = manual || calcularPrecioPlastificado(tam, corte, cant, piezas);
+  const desc = corte ? 
+    `${cant * piezas} piezas plastificadas y cortadas (${cant} hojas ${tamanoTexto[tam]}, ${piezas} piezas/hoja)` :
+    `${cant} hoja(s) plastificadas ${tamanoTexto[tam]}`;
+  
+  // ✅ CORRECCIÓN: Precio manual es POR HOJA/PIEZA
+  let precioTotal;
+  if (manual) {
+    if (corte) {
+      const totalPiezas = cant * piezas;
+      precioTotal = manual * totalPiezas; // Precio manual × piezas
+    } else {
+      precioTotal = manual * cant; // Precio manual × hojas
+    }
+  } else {
+    precioTotal = calcularPrecioPlastificado(tam, corte, cant, piezas);
+  }
 
-  agregarACotizacion({ nombre: 'Plastificado', descripcion: desc, precio: precioTotal });
+  agregarACotizacion({ nombre: 'Plastificado', descripcion: desc, cantidad: llevaCorte ? cantidadHojas * piezasPorHoja : cantidadHojas, precioUnitario: precioUnitario, precio: precioTotal });
   limpiarFormulario('formPlastificado');
 }
 
@@ -537,15 +834,299 @@ function inicializarEventListeners() {
   const tipoComp = document.getElementById('tipoComprobante');
   if (tipoComp) tipoComp.addEventListener('change', actualizarCotizacion);
 
-  const btnLimp = document.getElementById('btnLimpiarCarrito');
+  const btnLimp = document.getElementById('btnLimpiarCotizacion');
   if (btnLimp) btnLimp.addEventListener('click', limpiarCotizacion);
 
   const btnGen = document.getElementById('btnGenerarCotizacion');
   if (btnGen) btnGen.addEventListener('click', generarCotizacion);
+  
+  // Event listeners para el resumen del libro en tiempo real
+  const camposLibro = ['libroPaginasBN', 'libroPaginasColor', 'libroPaginasFullColor', 'libroJuegos', 'libroTerminacion'];
+  camposLibro.forEach(id => {
+    const elemento = document.getElementById(id);
+    if (elemento) {
+      elemento.addEventListener('input', actualizarResumenLibro);
+      elemento.addEventListener('change', actualizarResumenLibro);
+    }
+  });
 }
 
 // ============================================
-// 🚀 INICIALIZACIÓN
+// 📊 RESUMEN AUTOMÁTICO DEL LIBRO
+// ============================================
+
+function actualizarResumenLibro() {
+  const bn = parseInt(document.getElementById('libroPaginasBN')?.value || 0);
+  const color = parseInt(document.getElementById('libroPaginasColor')?.value || 0);
+  const fullColor = parseInt(document.getElementById('libroPaginasFullColor')?.value || 0);
+  const juegos = parseInt(document.getElementById('libroJuegos')?.value || 1);
+  const terminacion = document.getElementById('libroTerminacion')?.value;
+  
+  const totalPaginas = bn + color + fullColor;
+  
+  if (totalPaginas > 0) {
+    const resumenDiv = document.getElementById('resumenLibro');
+    const contentDiv = document.getElementById('resumenContent');
+    
+    if (resumenDiv && contentDiv) {
+      resumenDiv.style.display = 'block';
+      
+      let html = `<p><strong>Total de páginas:</strong> ${totalPaginas}</p>`;
+      if (bn > 0) html += `<p>• ${bn} páginas B/N</p>`;
+      if (color > 0) html += `<p>• ${color} páginas Color</p>`;
+      if (fullColor > 0) html += `<p>• ${fullColor} páginas Full Color</p>`;
+      
+      const termTexto = {
+        'ninguna': 'Sin terminación',
+        'espiral': 'Con encuadernado espiral',
+        'tapa_blanda': 'Con empastado tapa blanda',
+        'tapa_dura': 'Con empastado tapa dura'
+      };
+      
+      html += `<p><strong>Terminación:</strong> ${termTexto[terminacion] || 'N/A'}</p>`;
+      html += `<p><strong>Copias:</strong> ${juegos} libro(s)</p>`;
+      
+      contentDiv.innerHTML = html;
+    }
+  } else {
+    const resumenDiv = document.getElementById('resumenLibro');
+    if (resumenDiv) resumenDiv.style.display = 'none';
+  }
+}
+
+// ============================================
+// � CÁLCULO DE PRECIOS EN TIEMPO REAL
+// ============================================
+
+function calcularPrecioImpresionTiempoReal() {
+  const cantidad = parseInt(document.getElementById('cantidadPaginas')?.value || 0);
+  const tipo = document.getElementById('tipoImpresion')?.value;
+  const tamano = document.getElementById('tamanoImpresion')?.value;
+  const precioDiv = document.getElementById('precioImpresion');
+  const unitarioSpan = document.getElementById('precioUnitarioImpresion');
+  const totalSpan = document.getElementById('precioTotalImpresion');
+
+  if (!cantidad || !tipo || !tamano || cantidad <= 0) {
+    if (precioDiv) precioDiv.style.display = 'none';
+    return;
+  }
+
+  const precioUnitario = calcularPrecioImpresion(cantidad, tipo, tamano) / cantidad;
+  const precioTotal = precioUnitario * cantidad;
+
+  if (precioUnitario > 0) {
+    if (unitarioSpan) unitarioSpan.textContent = `RD$${precioUnitario.toFixed(2)}`;
+    if (totalSpan) totalSpan.textContent = `RD$${precioTotal.toFixed(2)}`;
+    if (precioDiv) precioDiv.style.display = 'block';
+  } else {
+    if (precioDiv) precioDiv.style.display = 'none';
+  }
+}
+
+function calcularPrecioEncuadernadoTiempoReal() {
+  const paginas = parseInt(document.getElementById('paginasEncuadernado')?.value || 0);
+  const cantidad = parseInt(document.getElementById('cantidadEncuadernado')?.value || 1);
+  const precioDiv = document.getElementById('precioEncuadernado');
+  const unitarioSpan = document.getElementById('precioUnitarioEncuadernado');
+  const totalSpan = document.getElementById('precioTotalEncuadernado');
+
+  if (!paginas || paginas <= 0) {
+    if (precioDiv) precioDiv.style.display = 'none';
+    return;
+  }
+
+  const precioUnitario = calcularPrecioEncuadernado(paginas);
+  const precioTotal = precioUnitario * cantidad;
+
+  if (precioUnitario > 0) {
+    if (unitarioSpan) unitarioSpan.textContent = `RD$${precioUnitario.toFixed(2)}`;
+    if (totalSpan) totalSpan.textContent = `RD$${precioTotal.toFixed(2)}`;
+    if (precioDiv) precioDiv.style.display = 'block';
+  } else {
+    if (precioDiv) precioDiv.style.display = 'none';
+  }
+}
+
+function calcularPrecioEmpastadoTiempoReal() {
+  const tipoRaw = document.getElementById('tipoEmpastadoGeneral')?.value;
+  const tamano = document.getElementById('tamanoEmpastado')?.value;
+  const cantidad = parseInt(document.getElementById('cantidadEmpastado')?.value || 1);
+  const precioDiv = document.getElementById('precioEmpastado');
+  const unitarioSpan = document.getElementById('precioUnitarioEmpastado');
+  const totalSpan = document.getElementById('precioTotalEmpastado');
+
+  if (!tipoRaw || !tamano) {
+    if (precioDiv) precioDiv.style.display = 'none';
+    return;
+  }
+
+  const tipoMap = { tapa_dura: 'Tapa Dura', tapa_blanda: 'Tapa Blanda' };
+  const tipo = tipoMap[tipoRaw];
+  const precioUnitario = calcularPrecioEmpastado(tipo, tamano);
+  const precioTotal = precioUnitario * cantidad;
+
+  if (precioUnitario > 0) {
+    if (unitarioSpan) unitarioSpan.textContent = `RD$${precioUnitario.toFixed(2)}`;
+    if (totalSpan) totalSpan.textContent = `RD$${precioTotal.toFixed(2)}`;
+    if (precioDiv) precioDiv.style.display = 'block';
+  } else {
+    if (precioDiv) precioDiv.style.display = 'none';
+  }
+}
+
+function calcularPrecioPloteoTiempoReal() {
+  const tipo = document.getElementById('tipoPloteo')?.value;
+  const opcionTamano = document.getElementById('opcionTamanoPloteo')?.value;
+  const tamano = document.getElementById('tamanoPloteo')?.value;
+  const cantidad = parseInt(document.getElementById('cantidadPloteo')?.value || 1);
+  const ancho = parseFloat(document.getElementById('anchoPloteo')?.value || 0);
+  const alto = parseFloat(document.getElementById('altoPloteo')?.value || 0);
+  const precioDiv = document.getElementById('precioPloteo');
+  const unitarioSpan = document.getElementById('precioUnitarioPloteo');
+  const totalSpan = document.getElementById('precioTotalPloteo');
+
+  if (!tipo || !opcionTamano || cantidad <= 0) {
+    if (precioDiv) precioDiv.style.display = 'none';
+    return;
+  }
+
+  let precioUnitario = 0;
+  if (opcionTamano === 'personalizado' && ancho > 0 && alto > 0) {
+    precioUnitario = calcularPrecioPloteo(tipo, 'custom', 1, ancho, alto);
+  } else if (tamano) {
+    precioUnitario = calcularPrecioPloteo(tipo, tamano, 1);
+  }
+
+  const precioTotal = precioUnitario * cantidad;
+
+  if (precioUnitario > 0) {
+    if (unitarioSpan) unitarioSpan.textContent = `RD$${precioUnitario.toFixed(2)}`;
+    if (totalSpan) totalSpan.textContent = `RD$${precioTotal.toFixed(2)}`;
+    if (precioDiv) precioDiv.style.display = 'block';
+  } else {
+    if (precioDiv) precioDiv.style.display = 'none';
+  }
+}
+
+function calcularPrecioPlastificadoTiempoReal() {
+  const tamano = document.getElementById('tamanoPlastificado')?.value;
+  const llevaCorte = document.getElementById('llevaCorte')?.value === 'si';
+  const cantidadHojas = parseInt(document.getElementById('cantidadPlastificado')?.value || 1);
+  const piezasPorHoja = llevaCorte ? parseInt(document.getElementById('cantidadPiezas')?.value || 1) : 1;
+  const precioDiv = document.getElementById('precioPlastificado');
+  const unitarioSpan = document.getElementById('precioUnitarioPlastificado');
+  const totalSpan = document.getElementById('precioTotalPlastificado');
+
+  if (!tamano || cantidadHojas <= 0) {
+    if (precioDiv) precioDiv.style.display = 'none';
+    return;
+  }
+
+  const precioTotal = calcularPrecioPlastificado(tamano, llevaCorte, cantidadHojas, piezasPorHoja);
+  const precioUnitario = llevaCorte ? precioTotal / (cantidadHojas * piezasPorHoja) : precioTotal / cantidadHojas;
+
+  if (precioUnitario > 0) {
+    if (unitarioSpan) unitarioSpan.textContent = `RD$${precioUnitario.toFixed(2)}`;
+    if (totalSpan) totalSpan.textContent = `RD$${precioTotal.toFixed(2)}`;
+    if (precioDiv) precioDiv.style.display = 'block';
+  } else {
+    if (precioDiv) precioDiv.style.display = 'none';
+  }
+}
+
+// ============================================
+// 🎯 EVENT LISTENERS PARA PRECIOS EN TIEMPO REAL
+// ============================================
+
+function inicializarPrecioTiempoReal() {
+  // Impresión
+  const camposImpresion = ['cantidadPaginas', 'tipoImpresion', 'tamanoImpresion'];
+  camposImpresion.forEach(id => {
+    const elemento = document.getElementById(id);
+    if (elemento) {
+      elemento.addEventListener('input', calcularPrecioImpresionTiempoReal);
+      elemento.addEventListener('change', calcularPrecioImpresionTiempoReal);
+    }
+  });
+
+  // Encuadernado
+  const camposEncuadernado = ['paginasEncuadernado', 'cantidadEncuadernado'];
+  camposEncuadernado.forEach(id => {
+    const elemento = document.getElementById(id);
+    if (elemento) {
+      elemento.addEventListener('input', calcularPrecioEncuadernadoTiempoReal);
+      elemento.addEventListener('change', calcularPrecioEncuadernadoTiempoReal);
+    }
+  });
+
+  // Empastado
+  const camposEmpastado = ['tipoEmpastadoGeneral', 'tamanoEmpastado', 'cantidadEmpastado'];
+  camposEmpastado.forEach(id => {
+    const elemento = document.getElementById(id);
+    if (elemento) {
+      elemento.addEventListener('input', calcularPrecioEmpastadoTiempoReal);
+      elemento.addEventListener('change', calcularPrecioEmpastadoTiempoReal);
+    }
+  });
+
+  // Ploteo
+  const camposPloteo = ['tipoPloteo', 'opcionTamanoPloteo', 'tamanoPloteo', 'cantidadPloteo', 'anchoPloteo', 'altoPloteo'];
+  camposPloteo.forEach(id => {
+    const elemento = document.getElementById(id);
+    if (elemento) {
+      elemento.addEventListener('input', calcularPrecioPloteoTiempoReal);
+      elemento.addEventListener('change', calcularPrecioPloteoTiempoReal);
+    }
+  });
+
+  // Plastificado
+  const camposPlastificado = ['tamanoPlastificado', 'llevaCorte', 'cantidadPlastificado', 'cantidadPiezas'];
+  camposPlastificado.forEach(id => {
+    const elemento = document.getElementById(id);
+    if (elemento) {
+      elemento.addEventListener('input', calcularPrecioPlastificadoTiempoReal);
+      elemento.addEventListener('change', calcularPrecioPlastificadoTiempoReal);
+    }
+  });
+}
+
+// ============================================
+// � GENERAR PDF DE COTIZACIÓN
+// ============================================
+
+function generarPDF() {
+  const header = `
+    <div style="text-align: center; margin-bottom: 20px; font-family: Arial, sans-serif;">
+      <img src="logo.png" alt="Logo ServiGaco" style="width: 100px; height: auto; margin-bottom: 10px;">
+      <h2 style="margin: 0; color: #333;">ServiGaco</h2>
+      <p style="margin: 5px 0; font-size: 14px;">Teléfono: (809) 123-4567</p>
+      <p style="margin: 5px 0; font-size: 14px;">Dirección: Santo Domingo, República Dominicana</p>
+      <h3 style="margin-top: 20px; color: #555;">Cotización de Servicios</h3>
+    </div>
+  `;
+
+  const table = document.getElementById('cotizacionTabla').outerHTML;
+
+  const tempDiv = document.createElement('div');
+  tempDiv.innerHTML = header + table;
+  tempDiv.style.fontFamily = 'Arial, sans-serif';
+  document.body.appendChild(tempDiv);
+
+  const opt = {
+    margin: 0.5,
+    filename: 'cotizacion.pdf',
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: { scale: 2, useCORS: true },
+    jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+  };
+
+  html2pdf().set(opt).from(tempDiv).save().then(() => {
+    document.body.removeChild(tempDiv);
+  });
+}
+
+// ============================================
+// �🚀 INICIALIZACIÓN
 // ============================================
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -553,5 +1134,7 @@ document.addEventListener('DOMContentLoaded', () => {
   marcarPaginaActiva();
   configurarMenuMovil();
   inicializarEventListeners();
+  inicializarPrecioTiempoReal(); // ← Agregado
+  document.getElementById('generarPDF').addEventListener('click', generarPDF);
   console.log('✅ Script inicializado');
 });
