@@ -275,12 +275,12 @@ function actualizarCotizacion() {
   if (cotizacion.length === 0) {
     if (cuerpoTabla) {
       cuerpoTabla.innerHTML = `
-        <tr class="cotizacion-vacia">
-          <td colspan="6">
-            <div class="empty-cotizacion">
-              <span class="empty-icon">📭</span>
-              <p>No hay servicios en la cotización</p>
-              <p class="empty-hint">Selecciona un servicio abajo para empezar</p>
+        <tr class="cotizacion-vacia bg-gray-50">
+          <td colspan="6" class="p-12 text-center">
+            <div class="flex flex-col items-center justify-center text-gray-500">
+              <span class="text-6xl mb-4">📭</span>
+              <p class="text-lg font-medium">No hay servicios en la cotización</p>
+              <p class="text-sm text-gray-400 mt-1">Selecciona un servicio abajo para empezar</p>
             </div>
           </td>
         </tr>
@@ -325,14 +325,16 @@ function actualizarCotizacion() {
 
   if (cuerpoTabla) {
     cuerpoTabla.innerHTML = cotizacion.map((item, i) => `
-      <tr>
-        <td><strong>${item.nombre}</strong></td>
-        <td>${item.descripcion}</td>
-        <td style="text-align: center;">${item.cantidad || 1}</td>
-        <td style="text-align: center;">RD$${(item.precioUnitario || item.precio).toFixed(2)}</td>
-        <td style="text-align: center;"><strong>RD$${item.precio.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}</strong></td>
-        <td style="text-align: center;">
-          <button class="btn-eliminar" onclick="eliminarDeCotizacion(${i})" title="Eliminar">🗑️</button>
+      <tr class="hover:bg-blue-50 transition-colors duration-150 group border-b border-gray-50 last:border-none">
+        <td class="px-6 py-4 text-gray-800 font-medium">${item.nombre}</td>
+        <td class="px-6 py-4 text-gray-600 text-sm">${item.descripcion}</td>
+        <td class="px-6 py-4 text-center text-gray-700 font-medium bg-gray-50/50">${item.cantidad || 1}</td>
+        <td class="px-6 py-4 text-right text-gray-600 font-medium">RD$${(item.precioUnitario || item.precio).toFixed(2)}</td>
+        <td class="px-6 py-4 text-right font-bold text-blue-700 bg-blue-50/30">RD$${item.precio.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}</td>
+        <td class="px-6 py-4 text-center">
+          <button class="p-2 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-100 transition-all duration-200 transform hover:scale-110 shadow-sm border border-transparent hover:border-red-200" onclick="eliminarDeCotizacion(${i})" title="Eliminar">
+            🗑️
+          </button>
         </td>
       </tr>
     `).join('');
@@ -634,18 +636,19 @@ function agregarPloteo() {
   if (tipoTam === 'personalizado' && (!ancho || !alto)) { alert('Ingrese ancho y alto'); return; }
 
   let precio;
+  let precioUnitario;
   let desc;
   
   // ✅ CORRECCIÓN: Precio manual es POR UNIDAD
   if (manual) {
     precio = manual * cant; // Precio manual × cantidad (total)
-    var precioUnitario = manual;
+    precioUnitario = manual;
   } else if (tipoTam === 'personalizado') {
     precio = calcularPrecioPloteo(tipoPloteo, 'custom', cant, ancho, alto);
-    var precioUnitario = precio / cant;
+    precioUnitario = precio / cant;
   } else {
     precio = calcularPrecioPloteo(tipoPloteo, tam, cant);
-    var precioUnitario = precio / cant;
+    precioUnitario = precio / cant;
   }
   
   const tipoTexto = {
@@ -707,7 +710,7 @@ function agregarPlastificado() {
     precioTotal = calcularPrecioPlastificado(tam, corte, cant, piezas);
   }
 
-  agregarACotizacion({ nombre: 'Plastificado', descripcion: desc, cantidad: llevaCorte ? cantidadHojas * piezasPorHoja : cantidadHojas, precioUnitario: precioUnitario, precio: precioTotal });
+  agregarACotizacion({ nombre: 'Plastificado', descripcion: desc, cantidad: corte ? cant * piezas : cant, precioUnitario: llevaCorte ? precioTotal / (cant * piezas) : precioTotal / cant, precio: precioTotal });
   limpiarFormulario('formPlastificado');
 }
 

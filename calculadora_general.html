@@ -9,11 +9,21 @@
   
   <title>Calculadora de Servicios - ServiGaco</title>
 
+  <!-- FUENTES: Montserrat -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
   <!-- ESTILOS -->
   <link rel="stylesheet" href="style.css" />
 
   <!-- TAILWIND CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+    }
+  </script>
 
   <!-- FAVICON -->
   <link rel="icon" type="image/png" sizes="32x32" href="assets/icono.png" />
@@ -49,6 +59,12 @@
           </li>
         </ul>
 
+        <!-- Botón Dark Mode -->
+        <button id="theme-toggle" type="button" class="text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 rounded-lg text-sm p-2.5 mr-2 transition-all duration-300">
+          <svg id="theme-toggle-dark-icon" class="hidden w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg>
+          <svg id="theme-toggle-light-icon" class="hidden w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 100 2h1z" fill-rule="evenodd" clip-rule="evenodd"></path></svg>
+        </button>
+
         <!-- Botón móvil (hamburguesa) -->
         <button class="nav-toggle" aria-label="Abrir menú" aria-expanded="false">
           <span class="hamburger"></span>
@@ -83,43 +99,43 @@
           </h2>
         </div>
 
-        <div class="cotizacion-tabla-container">
-          <table class="cotizacion-tabla" id="cotizacionTabla">
+        <div class="cotizacion-tabla-container overflow-hidden rounded-xl shadow-lg border border-gray-200 bg-white my-8">
+          <table class="w-full border-collapse" id="cotizacionTabla">
             <thead>
-              <tr>
-                <th>Servicio</th>
-                <th>Descripción</th>
-                <th>Cantidad</th>
-                <th>Precio Unitario</th>
-                <th>Total</th>
-                <th>Acciones</th>
+              <tr class="bg-gradient-to-r from-blue-600 to-blue-800 text-white">
+                <th class="px-6 py-4 text-left font-bold uppercase tracking-wider text-sm">Servicio</th>
+                <th class="px-6 py-4 text-left font-bold uppercase tracking-wider text-sm">Descripción</th>
+                <th class="px-6 py-4 text-center font-bold uppercase tracking-wider text-sm">Cantidad</th>
+                <th class="px-6 py-4 text-right font-bold uppercase tracking-wider text-sm">Precio Unitario</th>
+                <th class="px-6 py-4 text-right font-bold uppercase tracking-wider text-sm">Total</th>
+                <th class="px-6 py-4 text-center font-bold uppercase tracking-wider text-sm">Acciones</th>
               </tr>
             </thead>
-            <tbody id="cotizacionBody">
-              <tr class="cotizacion-vacia">
-                <td colspan="6">
-                  <div class="empty-cotizacion">
-                    <span class="empty-icon">📭</span>
-                    <p>No hay servicios en la cotización</p>
-                    <p class="empty-hint">Selecciona un servicio abajo para empezar</p>
+            <tbody id="cotizacionBody" class="divide-y divide-gray-100">
+              <tr class="cotizacion-vacia bg-gray-50">
+                <td colspan="6" class="p-12 text-center">
+                  <div class="flex flex-col items-center justify-center text-gray-500">
+                    <span class="text-6xl mb-4">📭</span>
+                    <p class="text-lg font-medium">No hay servicios en la cotización</p>
+                    <p class="text-sm text-gray-400 mt-1">Selecciona un servicio abajo para empezar</p>
                   </div>
                 </td>
               </tr>
             </tbody>
-            <tfoot id="cotizacionFooter" style="display: none;">
-              <tr class="subtotal-row">
-                <td colspan="4" class="total-label">Subtotal:</td>
-                <td class="total-amount" id="subtotalAmount">RD$0.00</td>
+            <tfoot id="cotizacionFooter" style="display: none;" class="bg-gray-50 border-t-2 border-gray-200">
+              <tr class="subtotal-row text-gray-600">
+                <td colspan="4" class="px-6 py-3 text-right font-bold">Subtotal:</td>
+                <td class="px-6 py-3 text-right font-bold text-gray-800 text-lg" id="subtotalAmount">RD$0.00</td>
                 <td></td>
               </tr>
-              <tr class="impuesto-row" id="impuestoRow" style="display: none;">
-                <td colspan="4" class="total-label" id="impuestoLabel">ITBIS (18%):</td>
-                <td class="total-amount" id="impuestoAmount">RD$0.00</td>
+              <tr class="impuesto-row text-orange-600" id="impuestoRow" style="display: none;">
+                <td colspan="4" class="px-6 py-3 text-right font-bold" id="impuestoLabel">ITBIS (18%):</td>
+                <td class="px-6 py-3 text-right font-bold text-lg" id="impuestoAmount">RD$0.00</td>
                 <td></td>
               </tr>
-              <tr class="total-row">
-                <td colspan="4" class="total-label">TOTAL:</td>
-                <td class="total-amount" id="totalAmount">RD$0.00</td>
+              <tr class="total-row bg-gradient-to-r from-orange-50 to-orange-100 border-t border-orange-200">
+                <td colspan="4" class="px-6 py-4 text-right font-black text-gray-800 text-xl">TOTAL:</td>
+                <td class="px-6 py-4 text-right font-black text-orange-600 text-2xl" id="totalAmount">RD$0.00</td>
                 <td></td>
               </tr>
             </tfoot>
@@ -128,8 +144,8 @@
 
         <!-- Botón para generar PDF -->
         <div class="pdf-button-container">
-          <button id="generarPDF" class="btn-generar-pdf">
-            <span class="btn-icon">📄</span>
+          <button id="generarPDF" class="w-full py-4 px-6 rounded-xl font-bold text-white text-lg bg-gradient-to-r from-orange-500 via-orange-600 to-orange-700 hover:from-orange-400 hover:to-orange-600 shadow-lg shadow-orange-500/40 transform transition-all duration-300 hover:-translate-y-1 hover:scale-[1.02] flex items-center justify-center gap-3 border border-orange-400/20">
+            <span class="text-2xl">📄</span>
             Generar PDF de Cotización
           </button>
         </div>
@@ -156,12 +172,12 @@
         </div>
 
         <div class="cotizacion-acciones" id="cotizacionAcciones" style="display: none;">
-          <button type="button" id="btnGenerarCotizacion" class="btn btn-primary">
-            <span class="btn-icon">📄</span>
+          <button type="button" id="btnGenerarCotizacion" class="flex-1 py-3 px-6 rounded-xl font-bold text-white bg-gradient-to-r from-orange-500 to-orange-700 hover:from-orange-400 hover:to-orange-600 shadow-lg shadow-orange-500/30 transform transition-all duration-200 hover:-translate-y-1 flex items-center justify-center gap-2">
+            <span class="text-xl">📄</span>
             Generar PDF Cotización
           </button>
-          <button type="button" id="btnLimpiarCotizacion" class="btn btn-secondary">
-            <span class="btn-icon">🗑️</span>
+          <button type="button" id="btnLimpiarCotizacion" class="flex-1 py-3 px-6 rounded-xl font-bold text-gray-700 bg-white border-2 border-gray-200 hover:bg-red-50 hover:text-red-600 hover:border-red-200 shadow-md transform transition-all duration-200 hover:-translate-y-1 flex items-center justify-center gap-2">
+            <span class="text-xl">🗑️</span>
             Limpiar Cotización
           </button>
         </div>
@@ -170,125 +186,127 @@
       <!-- ========================================
            ➕ AGREGAR SERVICIOS
            ======================================== -->
-      <div class="agregar-servicio">
-        <h2>
-          <span class="section-icon">➕</span>
+      <div class="agregar-servicio bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mt-8">
+        <h2 class="text-2xl font-black text-gray-800 mb-6 flex items-center gap-3 border-b border-gray-100 pb-4">
+          <span class="bg-blue-600 text-white p-2 rounded-xl text-lg shadow-md shadow-blue-200">➕</span>
           Agregar Servicio
         </h2>
 
         <!-- Selector de tipo de servicio -->
-        <div class="form-group">
-          <label for="tipoServicio">
-            <span class="label-icon">📦</span>
+        <div class="mb-8">
+          <label for="tipoServicio" class="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
+            <span class="bg-blue-100 text-blue-600 p-1.5 rounded-lg text-xs">📦</span>
             Tipo de servicio
           </label>
-          <select id="tipoServicio" class="select-servicio">
-            <option value="">-- Selecciona un servicio --</option>
-            <option value="impresion">📄 Impresiones</option>
-            <option value="encuadernado">📚 Encuadernado Espiral</option>
-            <option value="empastado">📕 Empastado</option>
-            <option value="ploteo">🖼️ Ploteo</option>
-            <option value="plastificado">💳 Plastificado</option>
-            <option value="libro">📘 Libro Completo (con Terminación)</option>
-          </select>
+          <div class="relative">
+            <select id="tipoServicio" class="w-full px-5 py-4 rounded-xl bg-gray-50 border border-gray-200 text-gray-700 font-semibold text-lg focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all duration-200 outline-none appearance-none cursor-pointer shadow-sm">
+              <option value="">-- Selecciona un servicio --</option>
+              <option value="impresion">📄 Impresiones</option>
+              <option value="encuadernado">📚 Encuadernado Espiral</option>
+              <option value="empastado">📕 Empastado</option>
+              <option value="ploteo">🖼️ Ploteo</option>
+              <option value="plastificado">💳 Plastificado</option>
+              <option value="libro">📘 Libro Completo (con Terminación)</option>
+            </select>
+            <div class="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-gray-500">
+              <svg class="w-5 h-5 fill-current" viewBox="0 0 20 20"><path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"/></svg>
+            </div>
+          </div>
         </div>
 
         <!-- ========================================
              📄 FORMULARIO: IMPRESIONES
              ======================================== -->
-        <div id="formImpresion" class="form-servicio" style="display: none;">
-          <h3 class="form-title">
-            <span class="title-icon">📄</span>
+        <div id="formImpresion" class="form-servicio animate-fade-in-up" style="display: none;">
+          <h3 class="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+            <span class="text-2xl">📄</span>
             Impresiones
           </h3>
 
-          <!-- Tamaño -->
-          <div class="form-group">
-            <label for="tamanoImpresion">
-              <span class="label-icon">📐</span>
-              Tamaño
-            </label>
-            <select id="tamanoImpresion">
-              <option value="carta">Carta (8½ x 11)</option>
-              <option value="legal">Legal (8½ x 14)</option>
-              <option value="tabloide">Tabloide (11 x 17)</option>
-            </select>
-          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <!-- Tamaño -->
+            <div class="group">
+              <label for="tamanoImpresion" class="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
+                <span class="bg-blue-100 text-blue-600 p-1.5 rounded-lg text-xs">📐</span> Tamaño
+              </label>
+              <div class="relative">
+                <select id="tamanoImpresion" class="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 text-gray-700 focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all duration-200 outline-none appearance-none font-medium">
+                  <option value="carta">Carta (8½ x 11)</option>
+                  <option value="legal">Legal (8½ x 14)</option>
+                  <option value="tabloide">Tabloide (11 x 17)</option>
+                </select>
+                <div class="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-gray-500"><svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"/></svg></div>
+              </div>
+            </div>
 
-          <!-- Tipo de impresión -->
-          <div class="form-group">
-            <label for="tipoImpresion">
-              <span class="label-icon">🎨</span>
-              Tipo de impresión
-            </label>
-            <select id="tipoImpresion">
-              <option value="bn">Blanco y Negro</option>
-              <option value="color">Color</option>
-              <option value="full_color">Full Color</option>
-              <option value="especial">Cartonite/Satinado/Adhesivo</option>
-            </select>
-          </div>
+            <!-- Tipo de impresión -->
+            <div class="group">
+              <label for="tipoImpresion" class="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
+                <span class="bg-blue-100 text-blue-600 p-1.5 rounded-lg text-xs">🎨</span> Tipo de impresión
+              </label>
+              <div class="relative">
+                <select id="tipoImpresion" class="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 text-gray-700 focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all duration-200 outline-none appearance-none font-medium">
+                  <option value="bn">Blanco y Negro</option>
+                  <option value="color">Color</option>
+                  <option value="full_color">Full Color</option>
+                  <option value="especial">Cartonite/Satinado/Adhesivo</option>
+                </select>
+                <div class="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-gray-500"><svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"/></svg></div>
+              </div>
+            </div>
 
-          <!-- Caras -->
-          <div class="form-group">
-            <label for="caras">
-              <span class="label-icon">📑</span>
-              Caras
-            </label>
-            <select id="caras">
-              <option value="doble">Doble cara</option>
-              <option value="simple">Simple cara</option>
-            </select>
-          </div>
+            <!-- Caras -->
+            <div class="group">
+              <label for="caras" class="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
+                <span class="bg-blue-100 text-blue-600 p-1.5 rounded-lg text-xs">📑</span> Caras
+              </label>
+              <div class="relative">
+                <select id="caras" class="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 text-gray-700 focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all duration-200 outline-none appearance-none font-medium">
+                  <option value="doble">Doble cara</option>
+                  <option value="simple">Simple cara</option>
+                </select>
+                <div class="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-gray-500"><svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"/></svg></div>
+              </div>
+            </div>
 
-          <!-- Cantidad de páginas -->
-          <div class="form-group">
-            <label for="cantidadPaginas">
-              <span class="label-icon">🔢</span>
-              Cantidad de páginas
-            </label>
-            <input 
-              type="number" 
-              id="cantidadPaginas" 
-              min="1" 
-              value="1"
-              placeholder="Ej: 50"
-            />
-            <small class="form-hint">El precio se ajusta según la cantidad</small>
+            <!-- Cantidad de páginas -->
+            <div class="group">
+              <label for="cantidadPaginas" class="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
+                <span class="bg-blue-100 text-blue-600 p-1.5 rounded-lg text-xs">🔢</span> Cantidad de páginas
+              </label>
+              <input type="number" id="cantidadPaginas" min="1" value="1" placeholder="Ej: 50" class="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 text-gray-700 focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all duration-200 outline-none font-medium" />
+              <small class="text-xs text-gray-400 mt-1 ml-1">El precio se ajusta según la cantidad</small>
+            </div>
           </div>
 
           <!-- Precio calculado en tiempo real -->
-          <div class="precio-calculado" id="precioImpresion" style="display: none;">
-            <div class="precio-info">
-              <span class="precio-label">Precio unitario:</span>
-              <span class="precio-valor" id="precioUnitarioImpresion">RD$0.00</span>
+          <div class="precio-calculado mt-6 p-5 bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100 rounded-xl shadow-sm" id="precioImpresion" style="display: none;">
+            <div class="flex justify-between items-center mb-2">
+              <span class="text-sm font-semibold text-gray-600">Precio unitario:</span>
+              <span class="text-lg font-bold text-blue-600 bg-white px-3 py-1 rounded-lg shadow-sm border border-blue-100" id="precioUnitarioImpresion">RD$0.00</span>
             </div>
-            <div class="precio-info">
-              <span class="precio-label">Total estimado:</span>
-              <span class="precio-valor" id="precioTotalImpresion">RD$0.00</span>
+            <div class="flex justify-between items-center">
+              <span class="text-sm font-bold text-gray-800">Total estimado:</span>
+              <span class="text-xl font-black text-indigo-700" id="precioTotalImpresion">RD$0.00</span>
             </div>
           </div>
 
           <!-- Precio personalizado (opcional) -->
-          <div class="form-group">
-            <label for="precioPersonalImpresion">
-              <span class="label-icon">💰</span>
-              Precio personalizado (opcional)
+          <div class="mt-6 pt-6 border-t border-gray-100">
+            <label for="precioPersonalImpresion" class="block text-sm font-bold text-gray-500 mb-2 flex items-center gap-2">
+              <span class="bg-gray-100 text-gray-500 p-1.5 rounded-lg text-xs">💰</span> Precio personalizado (opcional)
             </label>
-            <div class="input-with-prefix">
-              <span class="input-prefix">RD$</span>
-              <input 
-                type="number" 
-                id="precioPersonalImpresion" 
-                step="0.01"
-                placeholder="Dejar vacío para usar precio automático"
-              />
+            <div class="relative">
+              <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                <span class="text-gray-400 font-bold">RD$</span>
+              </div>
+              <input type="number" id="precioPersonalImpresion" step="0.01" placeholder="Dejar vacío para usar precio automático" class="w-full pl-12 pr-4 py-3 rounded-xl bg-gray-50 border border-gray-200 text-gray-700 focus:bg-white focus:border-gray-400 focus:ring-4 focus:ring-gray-200 transition-all duration-200 outline-none font-medium" />
             </div>
-            <small class="form-hint">Si no especificas, se calculará automáticamente</small>
+            <small class="text-xs text-gray-400 mt-1 ml-1">Si no especificas, se calculará automáticamente</small>
           </div>
 
-          <button type="button" class="btn btn-add" onclick="agregarImpresion()">
-            <span class="btn-icon">➕</span>
+          <button type="button" class="w-full mt-6 py-3 px-6 rounded-xl font-bold text-white bg-gradient-to-r from-blue-600 via-blue-700 to-blue-800 hover:from-blue-500 hover:to-blue-700 shadow-lg shadow-blue-500/40 transform transition-all duration-200 hover:-translate-y-1 flex items-center justify-center gap-2 group" onclick="agregarImpresion()">
+            <span class="text-xl group-hover:scale-110 transition-transform">➕</span>
             Agregar al Carrito
           </button>
         </div>
@@ -296,75 +314,58 @@
         <!-- ========================================
              📚 FORMULARIO: ENCUADERNADO ESPIRAL
              ======================================== -->
-        <div id="formEncuadernado" class="form-servicio" style="display: none;">
-          <h3 class="form-title">
-            <span class="title-icon">📚</span>
+        <div id="formEncuadernado" class="form-servicio animate-fade-in-up" style="display: none;">
+          <h3 class="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+            <span class="text-2xl">📚</span>
             Encuadernado Espiral
           </h3>
 
-          <!-- Cantidad de páginas -->
-          <div class="form-group">
-            <label for="paginasEncuadernado">
-              <span class="label-icon">📊</span>
-              Cantidad de páginas
-            </label>
-            <input 
-              type="number" 
-              id="paginasEncuadernado" 
-              min="1" 
-              max="1000"
-              value="100"
-              placeholder="Ej: 100"
-            />
-            <small class="form-hint">Máximo 1000 páginas</small>
-          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <!-- Cantidad de páginas -->
+            <div class="group">
+              <label for="paginasEncuadernado" class="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
+                <span class="bg-blue-100 text-blue-600 p-1.5 rounded-lg text-xs">📊</span> Cantidad de páginas
+              </label>
+              <input type="number" id="paginasEncuadernado" min="1" max="1000" value="100" placeholder="Ej: 100" class="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 text-gray-700 focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all duration-200 outline-none font-medium" />
+              <small class="text-xs text-gray-400 mt-1 ml-1">Máximo 1000 páginas</small>
+            </div>
 
-          <!-- Cantidad de encuadernados -->
-          <div class="form-group">
-            <label for="cantidadEncuadernado">
-              <span class="label-icon">🔢</span>
-              Cantidad de encuadernados
-            </label>
-            <input 
-              type="number" 
-              id="cantidadEncuadernado" 
-              min="1" 
-              value="1"
-              placeholder="Ej: 3"
-            />
+            <!-- Cantidad de encuadernados -->
+            <div class="group">
+              <label for="cantidadEncuadernado" class="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
+                <span class="bg-blue-100 text-blue-600 p-1.5 rounded-lg text-xs">🔢</span> Cantidad de encuadernados
+              </label>
+              <input type="number" id="cantidadEncuadernado" min="1" value="1" placeholder="Ej: 3" class="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 text-gray-700 focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all duration-200 outline-none font-medium" />
+            </div>
           </div>
 
           <!-- Precio calculado en tiempo real -->
-          <div class="precio-calculado" id="precioEncuadernado" style="display: none;">
-            <div class="precio-info">
-              <span class="precio-label">Precio unitario:</span>
-              <span class="precio-valor" id="precioUnitarioEncuadernado">RD$0.00</span>
+          <div class="precio-calculado mt-6 p-5 bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100 rounded-xl shadow-sm" id="precioEncuadernado" style="display: none;">
+            <div class="flex justify-between items-center mb-2">
+              <span class="text-sm font-semibold text-gray-600">Precio unitario:</span>
+              <span class="text-lg font-bold text-blue-600 bg-white px-3 py-1 rounded-lg shadow-sm border border-blue-100" id="precioUnitarioEncuadernado">RD$0.00</span>
             </div>
-            <div class="precio-info">
-              <span class="precio-label">Total estimado:</span>
-              <span class="precio-valor" id="precioTotalEncuadernado">RD$0.00</span>
+            <div class="flex justify-between items-center">
+              <span class="text-sm font-bold text-gray-800">Total estimado:</span>
+              <span class="text-xl font-black text-indigo-700" id="precioTotalEncuadernado">RD$0.00</span>
             </div>
           </div>
 
           <!-- Precio personalizado -->
-          <div class="form-group">
-            <label for="precioPersonalEncuadernado">
-              <span class="label-icon">💰</span>
-              Precio personalizado (opcional)
+          <div class="mt-6 pt-6 border-t border-gray-100">
+            <label for="precioPersonalEncuadernado" class="block text-sm font-bold text-gray-500 mb-2 flex items-center gap-2">
+              <span class="bg-gray-100 text-gray-500 p-1.5 rounded-lg text-xs">💰</span> Precio personalizado (opcional)
             </label>
-            <div class="input-with-prefix">
-              <span class="input-prefix">RD$</span>
-              <input 
-                type="number" 
-                id="precioPersonalEncuadernado" 
-                step="0.01"
-                placeholder="Dejar vacío para usar precio automático"
-              />
+            <div class="relative">
+              <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                <span class="text-gray-400 font-bold">RD$</span>
+              </div>
+              <input type="number" id="precioPersonalEncuadernado" step="0.01" placeholder="Dejar vacío para usar precio automático" class="w-full pl-12 pr-4 py-3 rounded-xl bg-gray-50 border border-gray-200 text-gray-700 focus:bg-white focus:border-gray-400 focus:ring-4 focus:ring-gray-200 transition-all duration-200 outline-none font-medium" />
             </div>
           </div>
 
-          <button type="button" class="btn btn-add" onclick="agregarEncuadernado()">
-            <span class="btn-icon">➕</span>
+          <button type="button" class="w-full mt-6 py-3 px-6 rounded-xl font-bold text-white bg-gradient-to-r from-blue-600 via-blue-700 to-blue-800 hover:from-blue-500 hover:to-blue-700 shadow-lg shadow-blue-500/40 transform transition-all duration-200 hover:-translate-y-1 flex items-center justify-center gap-2 group" onclick="agregarEncuadernado()">
+            <span class="text-xl group-hover:scale-110 transition-transform">➕</span>
             Agregar al Carrito
           </button>
         </div>
@@ -372,83 +373,79 @@
         <!-- ========================================
              📕 FORMULARIO: EMPASTADO
              ======================================== -->
-        <div id="formEmpastado" class="form-servicio" style="display: none;">
-          <h3 class="form-title">
-            <span class="title-icon">📕</span>
+        <div id="formEmpastado" class="form-servicio animate-fade-in-up" style="display: none;">
+          <h3 class="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+            <span class="text-2xl">📕</span>
             Empastado
           </h3>
 
-          <!-- Tipo de empastado -->
-          <div class="form-group">
-            <label for="tipoEmpastadoGeneral">
-              <span class="label-icon">📖</span>
-              Tipo de empastado
-            </label>
-            <select id="tipoEmpastadoGeneral">
-              <option value="tapa_dura">Tapa Dura</option>
-              <option value="tapa_blanda">Tapa Blanda</option>
-            </select>
-          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <!-- Tipo de empastado -->
+            <div class="group">
+              <label for="tipoEmpastadoGeneral" class="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
+                <span class="bg-blue-100 text-blue-600 p-1.5 rounded-lg text-xs">📖</span> Tipo de empastado
+              </label>
+              <div class="relative">
+                <select id="tipoEmpastadoGeneral" class="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 text-gray-700 focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all duration-200 outline-none appearance-none font-medium">
+                  <option value="tapa_dura">Tapa Dura</option>
+                  <option value="tapa_blanda">Tapa Blanda</option>
+                </select>
+                <div class="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-gray-500"><svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"/></svg></div>
+              </div>
+            </div>
 
-          <!-- Tamaño -->
-          <div class="form-group">
-            <label for="tamanoEmpastado">
-              <span class="label-icon">📐</span>
-              Tamaño
-            </label>
-            <select id="tamanoEmpastado">
-              <option value="carta">Carta (8.5x11)</option>
-              <option value="legal">Legal (8.5x14)</option>
-              <option value="tabloide">Tabloide (11x17)</option>
-            </select>
-            <small class="form-hint">Tapa blanda solo disponible en carta</small>
-          </div>
+            <!-- Tamaño -->
+            <div class="group">
+              <label for="tamanoEmpastado" class="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
+                <span class="bg-blue-100 text-blue-600 p-1.5 rounded-lg text-xs">📐</span> Tamaño
+              </label>
+              <div class="relative">
+                <select id="tamanoEmpastado" class="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 text-gray-700 focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all duration-200 outline-none appearance-none font-medium">
+                  <option value="carta">Carta (8.5x11)</option>
+                  <option value="legal">Legal (8.5x14)</option>
+                  <option value="tabloide">Tabloide (11x17)</option>
+                </select>
+                <div class="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-gray-500"><svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"/></svg></div>
+              </div>
+              <small class="text-xs text-gray-400 mt-1 ml-1">Tapa blanda solo disponible en carta</small>
+            </div>
 
-          <!-- Cantidad -->
-          <div class="form-group">
-            <label for="cantidadEmpastado">
-              <span class="label-icon">🔢</span>
-              Cantidad
-            </label>
-            <input 
-              type="number" 
-              id="cantidadEmpastado" 
-              min="1" 
-              value="1"
-            />
+            <!-- Cantidad -->
+            <div class="group md:col-span-2">
+              <label for="cantidadEmpastado" class="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
+                <span class="bg-blue-100 text-blue-600 p-1.5 rounded-lg text-xs">🔢</span> Cantidad
+              </label>
+              <input type="number" id="cantidadEmpastado" min="1" value="1" class="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 text-gray-700 focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all duration-200 outline-none font-medium" />
+            </div>
           </div>
 
           <!-- Precio calculado en tiempo real -->
-          <div class="precio-calculado" id="precioEmpastado" style="display: none;">
-            <div class="precio-info">
-              <span class="precio-label">Precio unitario:</span>
-              <span class="precio-valor" id="precioUnitarioEmpastado">RD$0.00</span>
+          <div class="precio-calculado mt-6 p-5 bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100 rounded-xl shadow-sm" id="precioEmpastado" style="display: none;">
+            <div class="flex justify-between items-center mb-2">
+              <span class="text-sm font-semibold text-gray-600">Precio unitario:</span>
+              <span class="text-lg font-bold text-blue-600 bg-white px-3 py-1 rounded-lg shadow-sm border border-blue-100" id="precioUnitarioEmpastado">RD$0.00</span>
             </div>
-            <div class="precio-info">
-              <span class="precio-label">Total estimado:</span>
-              <span class="precio-valor" id="precioTotalEmpastado">RD$0.00</span>
+            <div class="flex justify-between items-center">
+              <span class="text-sm font-bold text-gray-800">Total estimado:</span>
+              <span class="text-xl font-black text-indigo-700" id="precioTotalEmpastado">RD$0.00</span>
             </div>
           </div>
 
           <!-- Precio personalizado -->
-          <div class="form-group">
-            <label for="precioPersonalEmpastado">
-              <span class="label-icon">💰</span>
-              Precio personalizado (opcional)
+          <div class="mt-6 pt-6 border-t border-gray-100">
+            <label for="precioPersonalEmpastado" class="block text-sm font-bold text-gray-500 mb-2 flex items-center gap-2">
+              <span class="bg-gray-100 text-gray-500 p-1.5 rounded-lg text-xs">💰</span> Precio personalizado (opcional)
             </label>
-            <div class="input-with-prefix">
-              <span class="input-prefix">RD$</span>
-              <input 
-                type="number" 
-                id="precioPersonalEmpastado" 
-                step="0.01"
-                placeholder="Dejar vacío para usar precio automático"
-              />
+            <div class="relative">
+              <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                <span class="text-gray-400 font-bold">RD$</span>
+              </div>
+              <input type="number" id="precioPersonalEmpastado" step="0.01" placeholder="Dejar vacío para usar precio automático" class="w-full pl-12 pr-4 py-3 rounded-xl bg-gray-50 border border-gray-200 text-gray-700 focus:bg-white focus:border-gray-400 focus:ring-4 focus:ring-gray-200 transition-all duration-200 outline-none font-medium" />
             </div>
           </div>
 
-          <button type="button" class="btn btn-add" onclick="agregarEmpastado()">
-            <span class="btn-icon">➕</span>
+          <button type="button" class="w-full mt-6 py-3 px-6 rounded-xl font-bold text-white bg-gradient-to-r from-blue-600 via-blue-700 to-blue-800 hover:from-blue-500 hover:to-blue-700 shadow-lg shadow-blue-500/40 transform transition-all duration-200 hover:-translate-y-1 flex items-center justify-center gap-2 group" onclick="agregarEmpastado()">
+            <span class="text-xl group-hover:scale-110 transition-transform">➕</span>
             Agregar al Carrito
           </button>
         </div>
@@ -456,131 +453,112 @@
         <!-- ========================================
              🖼️ FORMULARIO: PLOTEO
              ======================================== -->
-        <div id="formPloteo" class="form-servicio" style="display: none;">
-          <h3 class="form-title">
-            <span class="title-icon">🖼️</span>
+        <div id="formPloteo" class="form-servicio animate-fade-in-up" style="display: none;">
+          <h3 class="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+            <span class="text-2xl">🖼️</span>
             Ploteo
           </h3>
 
-          <!-- Tipo de ploteo -->
-          <div class="form-group">
-            <label for="tipoPloteo">
-              <span class="label-icon">🎨</span>
-              Tipo
-            </label>
-            <select id="tipoPloteo">
-              <option value="bond_bn">Bond - Blanco y Negro</option>
-              <option value="bond_color">Bond - Color</option>
-              <option value="bond_full_color">Bond - Full Color</option>
-              <option value="cartonite">Cartonite</option>
-              <option value="fotografico">Papel Fotográfico</option>
-              <option value="canvas">Canvas</option>
-              <option value="lona">Lona</option>
-              <option value="cintra">Cintra</option>
-            </select>
-          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <!-- Tipo de ploteo -->
+            <div class="group">
+              <label for="tipoPloteo" class="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
+                <span class="bg-blue-100 text-blue-600 p-1.5 rounded-lg text-xs">🎨</span> Tipo
+              </label>
+              <div class="relative">
+                <select id="tipoPloteo" class="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 text-gray-700 focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all duration-200 outline-none appearance-none font-medium">
+                  <option value="bond_bn">Bond - Blanco y Negro</option>
+                  <option value="bond_color">Bond - Color</option>
+                  <option value="bond_full_color">Bond - Full Color</option>
+                  <option value="cartonite">Cartonite</option>
+                  <option value="fotografico">Papel Fotográfico</option>
+                  <option value="canvas">Canvas</option>
+                  <option value="lona">Lona</option>
+                  <option value="cintra">Cintra</option>
+                </select>
+                <div class="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-gray-500"><svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"/></svg></div>
+              </div>
+            </div>
 
-          <!-- Tamaño - Predefinido o personalizado -->
-          <div class="form-group">
-            <label for="opcionTamanoPloteo">
-              <span class="label-icon">📐</span>
-              Tamaño
-            </label>
-            <select id="opcionTamanoPloteo">
-              <option value="predefinido">Tamaños predefinidos</option>
-              <option value="personalizado">Tamaño personalizado</option>
-            </select>
+            <!-- Tamaño - Predefinido o personalizado -->
+            <div class="group">
+              <label for="opcionTamanoPloteo" class="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
+                <span class="bg-blue-100 text-blue-600 p-1.5 rounded-lg text-xs">📐</span> Tamaño
+              </label>
+              <div class="relative">
+                <select id="opcionTamanoPloteo" class="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 text-gray-700 focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all duration-200 outline-none appearance-none font-medium">
+                  <option value="predefinido">Tamaños predefinidos</option>
+                  <option value="personalizado">Tamaño personalizado</option>
+                </select>
+                <div class="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-gray-500"><svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"/></svg></div>
+              </div>
+            </div>
           </div>
 
           <!-- Tamaños predefinidos -->
-          <div id="tamanosPredefinidos" class="form-group">
-            <label for="tamanoPloteo">Seleccionar tamaño</label>
-            <select id="tamanoPloteo">
-              <option value="17x22">17x22</option>
-              <option value="18x24">18x24</option>
-              <option value="24x36">24x36</option>
-              <option value="36x48">36x48</option>
-            </select>
+          <div id="tamanosPredefinidos" class="mt-5">
+            <label for="tamanoPloteo" class="block text-sm font-bold text-gray-700 mb-2">Seleccionar tamaño</label>
+            <div class="relative">
+              <select id="tamanoPloteo" class="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 text-gray-700 focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all duration-200 outline-none appearance-none font-medium">
+                <option value="17x22">17x22</option>
+                <option value="18x24">18x24</option>
+                <option value="24x36">24x36</option>
+                <option value="36x48">36x48</option>
+              </select>
+              <div class="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-gray-500"><svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"/></svg></div>
+            </div>
           </div>
 
           <!-- Tamaño personalizado -->
-          <div id="tamanoPersonalizado" class="form-section" style="display: none;">
-            <div class="form-row">
-              <div class="form-group">
-                <label for="anchoPloteo">
-                  <span class="label-icon">↔️</span>
-                  Ancho (pulgadas)
-                </label>
-                <input 
-                  type="number" 
-                  id="anchoPloteo" 
-                  min="1" 
-                  step="0.1"
-                  placeholder="Ej: 24"
-                />
+          <div id="tamanoPersonalizado" class="mt-5 p-4 bg-gray-50 rounded-xl border border-gray-100" style="display: none;">
+            <div class="grid grid-cols-2 gap-4">
+              <div class="group">
+                <label for="anchoPloteo" class="block text-sm font-bold text-gray-700 mb-2">Ancho (pulgadas)</label>
+                <input type="number" id="anchoPloteo" min="1" step="0.1" placeholder="Ej: 24" class="w-full px-4 py-3 rounded-xl bg-white border border-gray-200 text-gray-700 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all duration-200 outline-none font-medium" />
               </div>
-              <div class="form-group">
-                <label for="altoPloteo">
-                  <span class="label-icon">↕️</span>
-                  Alto (pulgadas)
-                </label>
-                <input 
-                  type="number" 
-                  id="altoPloteo" 
-                  min="1" 
-                  step="0.1"
-                  placeholder="Ej: 36"
-                />
+              <div class="group">
+                <label for="altoPloteo" class="block text-sm font-bold text-gray-700 mb-2">Alto (pulgadas)</label>
+                <input type="number" id="altoPloteo" min="1" step="0.1" placeholder="Ej: 36" class="w-full px-4 py-3 rounded-xl bg-white border border-gray-200 text-gray-700 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all duration-200 outline-none font-medium" />
               </div>
             </div>
-            <small class="form-hint">Se calculará: (ancho × alto) ÷ 144 × precio/pie²</small>
+            <small class="text-xs text-gray-500 mt-2 block">Se calculará: (ancho × alto) ÷ 144 × precio/pie²</small>
           </div>
 
           <!-- Cantidad -->
-          <div class="form-group">
-            <label for="cantidadPloteo">
-              <span class="label-icon">🔢</span>
-              Cantidad
+          <div class="mt-5">
+            <label for="cantidadPloteo" class="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
+              <span class="bg-blue-100 text-blue-600 p-1.5 rounded-lg text-xs">🔢</span> Cantidad
             </label>
-            <input 
-              type="number" 
-              id="cantidadPloteo" 
-              min="1" 
-              value="1"
-            />
+            <input type="number" id="cantidadPloteo" min="1" value="1" class="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 text-gray-700 focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all duration-200 outline-none font-medium" />
           </div>
 
           <!-- Precio calculado en tiempo real -->
-          <div class="precio-calculado" id="precioPloteo" style="display: none;">
-            <div class="precio-info">
-              <span class="precio-label">Precio unitario:</span>
-              <span class="precio-valor" id="precioUnitarioPloteo">RD$0.00</span>
+          <div class="precio-calculado mt-6 p-5 bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100 rounded-xl shadow-sm" id="precioPloteo" style="display: none;">
+            <div class="flex justify-between items-center mb-2">
+              <span class="text-sm font-semibold text-gray-600">Precio unitario:</span>
+              <span class="text-lg font-bold text-blue-600 bg-white px-3 py-1 rounded-lg shadow-sm border border-blue-100" id="precioUnitarioPloteo">RD$0.00</span>
             </div>
-            <div class="precio-info">
-              <span class="precio-label">Total estimado:</span>
-              <span class="precio-valor" id="precioTotalPloteo">RD$0.00</span>
+            <div class="flex justify-between items-center">
+              <span class="text-sm font-bold text-gray-800">Total estimado:</span>
+              <span class="text-xl font-black text-indigo-700" id="precioTotalPloteo">RD$0.00</span>
             </div>
           </div>
 
           <!-- Precio personalizado -->
-          <div class="form-group">
-            <label for="precioPersonalPloteo">
-              <span class="label-icon">💰</span>
-              Precio personalizado (opcional)
+          <div class="mt-6 pt-6 border-t border-gray-100">
+            <label for="precioPersonalPloteo" class="block text-sm font-bold text-gray-500 mb-2 flex items-center gap-2">
+              <span class="bg-gray-100 text-gray-500 p-1.5 rounded-lg text-xs">💰</span> Precio personalizado (opcional)
             </label>
-            <div class="input-with-prefix">
-              <span class="input-prefix">RD$</span>
-              <input 
-                type="number" 
-                id="precioPersonalPloteo" 
-                step="0.01"
-                placeholder="Dejar vacío para usar precio automático"
-              />
+            <div class="relative">
+              <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                <span class="text-gray-400 font-bold">RD$</span>
+              </div>
+              <input type="number" id="precioPersonalPloteo" step="0.01" placeholder="Dejar vacío para usar precio automático" class="w-full pl-12 pr-4 py-3 rounded-xl bg-gray-50 border border-gray-200 text-gray-700 focus:bg-white focus:border-gray-400 focus:ring-4 focus:ring-gray-200 transition-all duration-200 outline-none font-medium" />
             </div>
           </div>
 
-          <button type="button" class="btn btn-add" onclick="agregarPloteo()">
-            <span class="btn-icon">➕</span>
+          <button type="button" class="w-full mt-6 py-3 px-6 rounded-xl font-bold text-white bg-gradient-to-r from-blue-600 via-blue-700 to-blue-800 hover:from-blue-500 hover:to-blue-700 shadow-lg shadow-blue-500/40 transform transition-all duration-200 hover:-translate-y-1 flex items-center justify-center gap-2 group" onclick="agregarPloteo()">
+            <span class="text-xl group-hover:scale-110 transition-transform">➕</span>
             Agregar al Carrito
           </button>
         </div>
@@ -588,100 +566,87 @@
         <!-- ========================================
              💳 FORMULARIO: PLASTIFICADO
              ======================================== -->
-        <div id="formPlastificado" class="form-servicio" style="display: none;">
-          <h3 class="form-title">
-            <span class="title-icon">💳</span>
+        <div id="formPlastificado" class="form-servicio animate-fade-in-up" style="display: none;">
+          <h3 class="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+            <span class="text-2xl">💳</span>
             Plastificado
           </h3>
 
-          <!-- Tamaño -->
-          <div class="form-group">
-            <label for="tamanoPlastificado">
-              <span class="label-icon">📐</span>
-              Tamaño
-            </label>
-            <select id="tamanoPlastificado">
-              <option value="cedula">Cédula - RD$30</option>
-              <option value="carta">Carta (8.5x11) - RD$40</option>
-              <option value="legal">Legal (8.5x14) - RD$50</option>
-              <option value="tabloide">Tabloide (11x17) - RD$60</option>
-            </select>
-          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <!-- Tamaño -->
+            <div class="group">
+              <label for="tamanoPlastificado" class="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
+                <span class="bg-blue-100 text-blue-600 p-1.5 rounded-lg text-xs">📐</span> Tamaño
+              </label>
+              <div class="relative">
+                <select id="tamanoPlastificado" class="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 text-gray-700 focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all duration-200 outline-none appearance-none font-medium">
+                  <option value="cedula">Cédula - RD$30</option>
+                  <option value="carta">Carta (8.5x11) - RD$40</option>
+                  <option value="legal">Legal (8.5x14) - RD$50</option>
+                  <option value="tabloide">Tabloide (11x17) - RD$60</option>
+                </select>
+                <div class="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-gray-500"><svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"/></svg></div>
+              </div>
+            </div>
 
-          <!-- ¿Lleva corte? -->
-          <div class="form-group">
-            <label for="llevaCorte">
-              <span class="label-icon">✂️</span>
-              ¿Lleva corte?
-            </label>
-            <select id="llevaCorte">
-              <option value="no">No</option>
-              <option value="si">Sí (se cobra por pieza individual)</option>
-            </select>
-            <small class="form-hint">Ejemplo: 10 hojas × 4 tarjetas = se cobra por 40 tarjetas</small>
+            <!-- ¿Lleva corte? -->
+            <div class="group">
+              <label for="llevaCorte" class="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
+                <span class="bg-blue-100 text-blue-600 p-1.5 rounded-lg text-xs">✂️</span> ¿Lleva corte?
+              </label>
+              <div class="relative">
+                <select id="llevaCorte" class="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 text-gray-700 focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all duration-200 outline-none appearance-none font-medium">
+                  <option value="no">No</option>
+                  <option value="si">Sí (se cobra por pieza individual)</option>
+                </select>
+                <div class="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-gray-500"><svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"/></svg></div>
+              </div>
+              <small class="text-xs text-gray-400 mt-1 ml-1">Ejemplo: 10 hojas × 4 tarjetas = se cobra por 40 tarjetas</small>
+            </div>
           </div>
 
           <!-- Cantidad de piezas (si lleva corte) -->
-          <div id="seccionPiezas" class="form-group" style="display: none;">
-            <label for="cantidadPiezas">
-              <span class="label-icon">🔢</span>
-              Cantidad de piezas por hoja
-            </label>
-            <input 
-              type="number" 
-              id="cantidadPiezas" 
-              min="1" 
-              value="2"
-              placeholder="Ej: 4 tarjetas por hoja"
-            />
-            <small class="form-hint">¿Cuántas piezas se cortan de cada hoja?</small>
+          <div id="seccionPiezas" class="mt-5 p-4 bg-yellow-50 rounded-xl border border-yellow-100" style="display: none;">
+            <label for="cantidadPiezas" class="block text-sm font-bold text-yellow-800 mb-2">🔢 Cantidad de piezas por hoja</label>
+            <input type="number" id="cantidadPiezas" min="1" value="2" placeholder="Ej: 4 tarjetas por hoja" class="w-full px-4 py-3 rounded-xl bg-white border border-yellow-200 text-gray-700 focus:border-yellow-500 focus:ring-4 focus:ring-yellow-500/10 transition-all duration-200 outline-none font-medium" />
+            <small class="text-xs text-yellow-600 mt-1 block">¿Cuántas piezas se cortan de cada hoja?</small>
           </div>
 
           <!-- Cantidad de hojas -->
-          <div class="form-group">
-            <label for="cantidadPlastificado">
-              <span class="label-icon">📄</span>
-              Cantidad de hojas
+          <div class="mt-5">
+            <label for="cantidadPlastificado" class="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
+              <span class="bg-blue-100 text-blue-600 p-1.5 rounded-lg text-xs">📄</span> Cantidad de hojas
             </label>
-            <input 
-              type="number" 
-              id="cantidadPlastificado" 
-              min="1" 
-              value="1"
-            />
+            <input type="number" id="cantidadPlastificado" min="1" value="1" class="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 text-gray-700 focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all duration-200 outline-none font-medium" />
           </div>
 
           <!-- Precio calculado en tiempo real -->
-          <div class="precio-calculado" id="precioPlastificado" style="display: none;">
-            <div class="precio-info">
-              <span class="precio-label">Precio unitario:</span>
-              <span class="precio-valor" id="precioUnitarioPlastificado">RD$0.00</span>
+          <div class="precio-calculado mt-6 p-5 bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100 rounded-xl shadow-sm" id="precioPlastificado" style="display: none;">
+            <div class="flex justify-between items-center mb-2">
+              <span class="text-sm font-semibold text-gray-600">Precio unitario:</span>
+              <span class="text-lg font-bold text-blue-600 bg-white px-3 py-1 rounded-lg shadow-sm border border-blue-100" id="precioUnitarioPlastificado">RD$0.00</span>
             </div>
-            <div class="precio-info">
-              <span class="precio-label">Total estimado:</span>
-              <span class="precio-valor" id="precioTotalPlastificado">RD$0.00</span>
+            <div class="flex justify-between items-center">
+              <span class="text-sm font-bold text-gray-800">Total estimado:</span>
+              <span class="text-xl font-black text-indigo-700" id="precioTotalPlastificado">RD$0.00</span>
             </div>
           </div>
 
           <!-- Precio personalizado -->
-          <div class="form-group">
-            <label for="precioPersonalPlastificado">
-              <span class="label-icon">💰</span>
-              Precio personalizado (opcional)
+          <div class="mt-6 pt-6 border-t border-gray-100">
+            <label for="precioPersonalPlastificado" class="block text-sm font-bold text-gray-500 mb-2 flex items-center gap-2">
+              <span class="bg-gray-100 text-gray-500 p-1.5 rounded-lg text-xs">💰</span> Precio personalizado (opcional)
             </label>
-            <div class="input-with-prefix">
-              <span class="input-prefix">RD$</span>
-              <input 
-                type="number" 
-                id="precioPersonalPlastificado" 
-                step="0.01"
-                placeholder="Dejar vacío para usar precio automático"
-              />
+            <div class="relative">
+              <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                <span class="text-gray-400 font-bold">RD$</span>
+              </div>
+              <input type="number" id="precioPersonalPlastificado" step="0.01" placeholder="Dejar vacío para usar precio automático" class="w-full pl-12 pr-4 py-3 rounded-xl bg-gray-50 border border-gray-200 text-gray-700 focus:bg-white focus:border-gray-400 focus:ring-4 focus:ring-gray-200 transition-all duration-200 outline-none font-medium" />
             </div>
           </div>
 
-          <button type="button" class="btn btn-add" onclick="agregarPlastificado()">
-            <span class="btn-icon">➕</span>
+          <button type="button" class="w-full mt-6 py-3 px-6 rounded-xl font-bold text-white bg-gradient-to-r from-blue-600 via-blue-700 to-blue-800 hover:from-blue-500 hover:to-blue-700 shadow-lg shadow-blue-500/40 transform transition-all duration-200 hover:-translate-y-1 flex items-center justify-center gap-2 group" onclick="agregarPlastificado()">
+            <span class="text-xl group-hover:scale-110 transition-transform">➕</span>
             Agregar al Carrito
           </button>
         </div>
@@ -690,142 +655,124 @@
         <!-- ========================================
              📘 FORMULARIO: LIBRO COMPLETO (MEJORADO)
              ======================================== -->
-        <div id="formLibro" class="form-servicio" style="display: none;">
-          <h3 class="form-title">
-            <span class="title-icon">📘</span>
+        <div id="formLibro" class="form-servicio animate-fade-in-up" style="display: none;">
+          <h3 class="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+            <span class="text-2xl">📘</span>
             Libro Completo (Impresión + Terminación)
           </h3>
 
-          <div class="info-box">
-            <p><strong>💡 Ejemplo:</strong> 1 portada a color + 99 páginas B/N + encuadernado = 100 páginas totales</p>
+          <div class="bg-blue-50 border border-blue-100 rounded-xl p-4 mb-6 text-sm text-blue-800 flex gap-3 items-start">
+            <span class="text-xl">💡</span>
+            <p><strong>Ejemplo:</strong> 1 portada a color + 99 páginas B/N + encuadernado = 100 páginas totales</p>
           </div>
 
           <!-- SECCIÓN: IMPRESIÓN BLANCO Y NEGRO -->
-          <div class="form-section">
-            <h4 class="section-subtitle">
-              <span class="subtitle-icon">⚫</span>
+          <div class="mb-6 pb-6 border-b border-gray-100">
+            <h4 class="text-md font-bold text-gray-700 mb-4 flex items-center gap-2">
+              <span class="bg-gray-200 text-gray-700 p-1 rounded text-xs">⚫</span>
               Páginas Blanco y Negro
             </h4>
             
-            <div class="form-group">
-              <label for="libroPaginasBN">
-                <span class="label-icon">🔢</span>
+            <div>
+              <label for="libroPaginasBN" class="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
+                <span class="bg-blue-100 text-blue-600 p-1.5 rounded-lg text-xs">🔢</span>
                 Cantidad de páginas B/N
               </label>
-              <input 
-                type="number" 
-                id="libroPaginasBN" 
-                min="0" 
-                value="0"
-                placeholder="Ej: 99"
-              />
-              <small class="form-hint">Deja en 0 si no hay páginas B/N</small>
+              <input type="number" id="libroPaginasBN" min="0" value="0" placeholder="Ej: 99" class="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 text-gray-700 focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all duration-200 outline-none font-medium" />
+              <small class="text-xs text-gray-400 mt-1 ml-1">Deja en 0 si no hay páginas B/N</small>
             </div>
           </div>
 
           <!-- SECCIÓN: IMPRESIÓN COLOR -->
-          <div class="form-section">
-            <h4 class="section-subtitle">
-              <span class="subtitle-icon">🎨</span>
+          <div class="mb-6 pb-6 border-b border-gray-100">
+            <h4 class="text-md font-bold text-gray-700 mb-4 flex items-center gap-2">
+              <span class="bg-pink-100 text-pink-600 p-1 rounded text-xs">🎨</span>
               Páginas a Color
             </h4>
             
-            <div class="form-group">
-              <label for="libroPaginasColor">
-                <span class="label-icon">🔢</span>
+            <div>
+              <label for="libroPaginasColor" class="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
+                <span class="bg-blue-100 text-blue-600 p-1.5 rounded-lg text-xs">🔢</span>
                 Cantidad de páginas a Color
               </label>
-              <input 
-                type="number" 
-                id="libroPaginasColor" 
-                min="0" 
-                value="0"
-                placeholder="Ej: 1 (portada)"
-              />
-              <small class="form-hint">Deja en 0 si no hay páginas a color</small>
+              <input type="number" id="libroPaginasColor" min="0" value="0" placeholder="Ej: 1 (portada)" class="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 text-gray-700 focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all duration-200 outline-none font-medium" />
+              <small class="text-xs text-gray-400 mt-1 ml-1">Deja en 0 si no hay páginas a color</small>
             </div>
           </div>
 
           <!-- SECCIÓN: IMPRESIÓN FULL COLOR -->
-          <div class="form-section">
-            <h4 class="section-subtitle">
-              <span class="subtitle-icon">🌈</span>
+          <div class="mb-6 pb-6 border-b border-gray-100">
+            <h4 class="text-md font-bold text-gray-700 mb-4 flex items-center gap-2">
+              <span class="bg-purple-100 text-purple-600 p-1 rounded text-xs">🌈</span>
               Páginas Full Color
             </h4>
             
-            <div class="form-group">
-              <label for="libroPaginasFullColor">
-                <span class="label-icon">🔢</span>
+            <div>
+              <label for="libroPaginasFullColor" class="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
+                <span class="bg-blue-100 text-blue-600 p-1.5 rounded-lg text-xs">🔢</span>
                 Cantidad de páginas Full Color
               </label>
-              <input 
-                type="number" 
-                id="libroPaginasFullColor" 
-                min="0" 
-                value="0"
-                placeholder="Ej: 0"
-              />
-              <small class="form-hint">Deja en 0 si no hay páginas full color</small>
+              <input type="number" id="libroPaginasFullColor" min="0" value="0" placeholder="Ej: 0" class="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 text-gray-700 focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all duration-200 outline-none font-medium" />
+              <small class="text-xs text-gray-400 mt-1 ml-1">Deja en 0 si no hay páginas full color</small>
             </div>
           </div>
 
           <!-- SECCIÓN: CONFIGURACIÓN GENERAL -->
-          <div class="form-section">
-            <h4 class="section-subtitle">
-              <span class="subtitle-icon">⚙️</span>
+          <div class="mb-6">
+            <h4 class="text-md font-bold text-gray-700 mb-4 flex items-center gap-2">
+              <span class="bg-gray-200 text-gray-700 p-1 rounded text-xs">⚙️</span>
               Configuración del Libro
             </h4>
 
-            <div class="form-group">
-              <label for="libroTamano">
-                <span class="label-icon">📐</span>
-                Tamaño
-              </label>
-              <select id="libroTamano">
-                <option value="carta">Carta (8½ x 11)</option>
-                <option value="legal">Legal (8½ x 14)</option>
-                <option value="tabloide">Tabloide (11 x 17)</option>
-              </select>
-            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <div class="group">
+                <label for="libroTamano" class="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
+                  <span class="bg-blue-100 text-blue-600 p-1.5 rounded-lg text-xs">📐</span> Tamaño
+                </label>
+                <div class="relative">
+                  <select id="libroTamano" class="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 text-gray-700 focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all duration-200 outline-none appearance-none font-medium">
+                    <option value="carta">Carta (8½ x 11)</option>
+                    <option value="legal">Legal (8½ x 14)</option>
+                    <option value="tabloide">Tabloide (11 x 17)</option>
+                  </select>
+                  <div class="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-gray-500"><svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"/></svg></div>
+                </div>
+              </div>
 
-            <div class="form-group">
-              <label for="libroTerminacion">
-                <span class="label-icon">📚</span>
-                Terminación
-              </label>
-              <select id="libroTerminacion">
-                <option value="ninguna">Sin terminación (solo impresión)</option>
-                <option value="espiral">Encuadernado espiral</option>
-                <option value="tapa_blanda">Empastado tapa blanda</option>
-                <option value="tapa_dura">Empastado tapa dura</option>
-              </select>
-              <small class="form-hint">Tapa blanda solo disponible en carta</small>
-            </div>
+              <div class="group">
+                <label for="libroTerminacion" class="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
+                  <span class="bg-blue-100 text-blue-600 p-1.5 rounded-lg text-xs">📚</span> Terminación
+                </label>
+                <div class="relative">
+                  <select id="libroTerminacion" class="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 text-gray-700 focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all duration-200 outline-none appearance-none font-medium">
+                    <option value="ninguna">Sin terminación (solo impresión)</option>
+                    <option value="espiral">Encuadernado espiral</option>
+                    <option value="tapa_blanda">Empastado tapa blanda</option>
+                    <option value="tapa_dura">Empastado tapa dura</option>
+                  </select>
+                  <div class="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-gray-500"><svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"/></svg></div>
+                </div>
+                <small class="text-xs text-gray-400 mt-1 ml-1">Tapa blanda solo disponible en carta</small>
+              </div>
 
-            <div class="form-group">
-              <label for="libroJuegos">
-                <span class="label-icon">📚</span>
-                Número de copias/juegos
-              </label>
-              <input 
-                type="number" 
-                id="libroJuegos" 
-                min="1" 
-                value="1"
-                placeholder="¿Cuántos libros iguales?"
-              />
-              <small class="form-hint">Todos los costos se multiplicarán por este número</small>
+              <div class="group md:col-span-2">
+                <label for="libroJuegos" class="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
+                  <span class="bg-blue-100 text-blue-600 p-1.5 rounded-lg text-xs">📚</span> Número de copias/juegos
+                </label>
+                <input type="number" id="libroJuegos" min="1" value="1" placeholder="¿Cuántos libros iguales?" class="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 text-gray-700 focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all duration-200 outline-none font-medium" />
+                <small class="text-xs text-gray-400 mt-1 ml-1">Todos los costos se multiplicarán por este número</small>
+              </div>
             </div>
           </div>
 
           <!-- RESUMEN AUTOMÁTICO -->
-          <div class="resumen-libro" id="resumenLibro" style="display: none;">
-            <h4 class="resumen-title">📊 Resumen del Libro</h4>
-            <div class="resumen-content" id="resumenContent"></div>
+          <div class="resumen-libro mt-6 p-5 bg-indigo-50 border border-indigo-100 rounded-xl" id="resumenLibro" style="display: none;">
+            <h4 class="text-lg font-bold text-indigo-800 mb-3 flex items-center gap-2">📊 Resumen del Libro</h4>
+            <div class="text-sm text-indigo-700 space-y-1" id="resumenContent"></div>
           </div>
 
-          <button type="button" class="btn btn-add" onclick="agregarLibro()">
-            <span class="btn-icon">➕</span>
+          <button type="button" class="w-full mt-6 py-3 px-6 rounded-xl font-bold text-white bg-gradient-to-r from-blue-600 via-blue-700 to-blue-800 hover:from-blue-500 hover:to-blue-700 shadow-lg shadow-blue-500/40 transform transition-all duration-200 hover:-translate-y-1 flex items-center justify-center gap-2 group" onclick="agregarLibro()">
+            <span class="text-xl group-hover:scale-110 transition-transform">➕</span>
             Agregar Libro al Carrito
           </button>
         </div>
@@ -968,6 +915,47 @@
         cerrarModalPrecios();
       }
     });
+  });
+
+  // ===============================
+  // 🌙 DARK MODE LOGIC
+  // ===============================
+  const themeToggleBtn = document.getElementById('theme-toggle');
+  const darkIcon = document.getElementById('theme-toggle-dark-icon');
+  const lightIcon = document.getElementById('theme-toggle-light-icon');
+
+  // Check initial theme
+  if (localStorage.getItem('color-theme') === 'dark' || (!('color-theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+    document.documentElement.classList.add('dark');
+    lightIcon.classList.remove('hidden');
+  } else {
+    document.documentElement.classList.remove('dark');
+    darkIcon.classList.remove('hidden');
+  }
+
+  themeToggleBtn.addEventListener('click', function() {
+    // Toggle icons
+    darkIcon.classList.toggle('hidden');
+    lightIcon.classList.toggle('hidden');
+
+    // If is set in localstorage
+    if (localStorage.getItem('color-theme')) {
+      if (localStorage.getItem('color-theme') === 'light') {
+        document.documentElement.classList.add('dark');
+        localStorage.setItem('color-theme', 'dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+        localStorage.setItem('color-theme', 'light');
+      }
+    } else {
+      if (document.documentElement.classList.contains('dark')) {
+        document.documentElement.classList.remove('dark');
+        localStorage.setItem('color-theme', 'light');
+      } else {
+        document.documentElement.classList.add('dark');
+        localStorage.setItem('color-theme', 'dark');
+      }
+    }
   });
 </script>
 

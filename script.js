@@ -78,7 +78,6 @@ const BLOQUE_CUENTAS = `
 
     <!-- AQUÍ va el tiempo de entrega -->
     {{TIEMPO_ENTREGA}}
-  </div>
 `;
 ;
 
@@ -946,4 +945,3 @@ if (document.readyState === 'loading') {
 } else {
   inicializar();
 }
-
