@@ -638,11 +638,14 @@ function agregarPloteo() {
   
   // ✅ CORRECCIÓN: Precio manual es POR UNIDAD
   if (manual) {
-    precio = manual * cant; // Precio manual × cantidad
+    precio = manual * cant; // Precio manual × cantidad (total)
+    var precioUnitario = manual;
   } else if (tipoTam === 'personalizado') {
     precio = calcularPrecioPloteo(tipoPloteo, 'custom', cant, ancho, alto);
+    var precioUnitario = precio / cant;
   } else {
     precio = calcularPrecioPloteo(tipoPloteo, tam, cant);
+    var precioUnitario = precio / cant;
   }
   
   const tipoTexto = {
@@ -656,11 +659,17 @@ function agregarPloteo() {
     'cintra': 'Cintra'
   };
   
-  desc = tipoTam === 'personalizado' ? 
-    `${cant} ${tipoTexto[tipoPloteo]} · ${ancho}" x ${alto}"` : 
-    `${cant} ${tipoTexto[tipoPloteo]} · ${tam}"`;
+  desc = tipoTam === 'personalizado' ?
+    `${cant} ${tipoTexto[tipoPloteo]} · ${ancho}" x ${alto}"` :
+    `${cant} ${tipoTexto[tipoPloteo]} · ${tam}`;
 
-  agregarACotizacion({ nombre: 'Ploteo', descripcion: desc, cantidad: cant, precioUnitario: precioUnitario, precio });
+  agregarACotizacion({
+    nombre: 'Ploteo',
+    descripcion: desc,
+    cantidad: cant,
+    precioUnitario: precioUnitario,
+    precio: precio
+  });
   limpiarFormulario('formPloteo');
 }
 
@@ -1105,24 +1114,257 @@ function generarPDF() {
     </div>
   `;
 
-  const table = document.getElementById('cotizacionTabla').outerHTML;
+  // Clonar tabla y limpiar elementos interactivos (botones, inputs)
+  const originalTable = document.getElementById('cotizacionTabla');
+  if (!originalTable) { alert('No se encontró la tabla de cotización'); return; }
 
+  const tableClone = originalTable.cloneNode(true);
+  // Eliminar columna de acciones (última columna) y botones
+  tableClone.querySelectorAll('tr').forEach(row => {
+    // eliminar botones dentro de la fila
+    row.querySelectorAll('button, input, select').forEach(n => n.remove());
+    // si la fila tiene más de 0 celdas, remover la última (acciones)
+    const cells = row.querySelectorAll('th, td');
+    if (cells.length > 0) cells[cells.length - 1].remove();
+  });
+
+  // Crear contenedor temporal y aplicarle estilo (invisible pero renderizable)
   const tempDiv = document.createElement('div');
-  tempDiv.innerHTML = header + table;
+  // Colocar fuera de la vista pero renderizable (no usar opacity:0 que algunos motores ignoran)
+  tempDiv.style.position = 'fixed';
+  tempDiv.style.left = '-10000px';
+  tempDiv.style.top = '0';
+  tempDiv.style.width = '600px';
+  tempDiv.style.background = '#ffffff';
+  tempDiv.style.visibility = 'visible';
+  tempDiv.style.pointerEvents = 'none';
+  tempDiv.style.zIndex = '9999';
   tempDiv.style.fontFamily = 'Arial, sans-serif';
+  tempDiv.innerHTML = header;
+  // Añadir estilos mínimos para que la tabla se vea bien en el PDF
+  const style = document.createElement('style');
+  style.textContent = `
+    body { font-size: 10px; }
+    table { border-collapse: collapse; width: 100%; font-size: 9px; }
+    table th, table td { border: 1px solid #ddd; padding: 4px 6px; font-size: 9px; }
+    table th { background: #f4f4f4; text-align: left; }
+    h2 { font-size: 16px; margin: 0 0 6px 0; }
+    h3 { font-size: 14px; margin: 4px 0; }
+    p { font-size: 10px; margin: 0; }
+    img { max-width: 80px; height: auto; display: block; margin: 0 auto 6px; }
+  `;
+  tempDiv.appendChild(style);
+  tempDiv.appendChild(tableClone);
   document.body.appendChild(tempDiv);
 
+  const timestamp = new Date().toISOString().slice(0,19).replace(/[:T]/g,'-');
   const opt = {
     margin: 0.5,
-    filename: 'cotizacion.pdf',
+    filename: `cotizacion-${timestamp}.pdf`,
     image: { type: 'jpeg', quality: 0.98 },
-    html2canvas: { scale: 2, useCORS: true },
+    html2canvas: { scale: 2, useCORS: false, allowTaint: true, logging: false, backgroundColor: '#ffffff' },
     jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
   };
 
-  html2pdf().set(opt).from(tempDiv).save().then(() => {
-    document.body.removeChild(tempDiv);
+  // Esperar a que las imágenes dentro del contenedor temporal carguen antes de renderizar
+  const imgs = tempDiv.querySelectorAll('img');
+  const imgPromises = Array.from(imgs).map(img => new Promise(resolve => {
+    if (img.complete) return resolve();
+    img.onload = img.onerror = () => resolve();
+    // intentar forzar recarga si está vacío
+    if (!img.src) resolve();
+  }));
+
+  // Logs de diagnóstico
+  console.log('generarPDF: filas en tabla clonada =', tableClone.querySelectorAll('tr').length);
+  console.log('generarPDF: texto del contenedor (primeros 200 chars):', tempDiv.innerText.slice(0,200));
+
+  const runRender = () => {
+    html2pdf().set(opt).from(tempDiv).save().then(() => {
+      if (document.body.contains(tempDiv)) document.body.removeChild(tempDiv);
+    }).catch(err => {
+      console.error('Error generando PDF:', err);
+      if (document.body.contains(tempDiv)) document.body.removeChild(tempDiv);
+      alert('Ocurrió un error al generar el PDF. Revisa la consola.');
+    });
+  };
+
+  Promise.all(imgPromises).then(runRender).catch(runRender);
+}
+
+// ============================================
+// 🖨️ IMPRIMIR COTIZACIÓN (vista para imprimir)
+// ============================================
+
+function imprimirCotizacion() {
+  if (cotizacion.length === 0) { alert('Cotización vacía'); return; }
+
+  const originalTable = document.getElementById('cotizacionTabla');
+  if (!originalTable) { alert('No se encontró la tabla de cotización'); return; }
+
+  const tableClone = originalTable.cloneNode(true);
+  tableClone.querySelectorAll('tr').forEach(row => {
+    row.querySelectorAll('button, input, select').forEach(n => n.remove());
+    const cells = row.querySelectorAll('th, td');
+    if (cells.length > 0) cells[cells.length - 1].remove();
   });
+
+  const fecha = new Date().toLocaleString();
+  const tipoComp = document.getElementById('tipoComprobante')?.value || 'ninguno';
+  const subtotal = cotizacion.reduce((s, i) => s + i.precio, 0);
+  
+  let impuesto = 0;
+  let nombreImpuesto = '';
+  if (tipoComp === 'fiscal') { impuesto = subtotal * 0.18; nombreImpuesto = 'ITBIS (18%)'; }
+  else if (tipoComp === 'gubernamental') { impuesto = subtotal * 0.10; nombreImpuesto = 'ISR (10%)'; }
+  const total = subtotal + impuesto;
+
+  const resumenHTML = tipoComp !== 'ninguno' ? `
+    <tr style="background-color: #f0f9ff;">
+      <td colspan="4" style="text-align: right; font-weight: bold; color: #475569; padding: 12px 16px;">Subtotal:</td>
+      <td style="text-align: right; font-weight: bold; color: #2563eb; padding: 12px 16px; font-size: 16px;">RD$${subtotal.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}</td>
+    </tr>
+    <tr>
+      <td colspan="4" style="text-align: right; font-weight: bold; color: #475569; padding: 12px 16px;">Impuesto (${nombreImpuesto}):</td>
+      <td style="text-align: right; font-weight: bold; color: #ea580c; padding: 12px 16px; font-size: 16px;">RD$${impuesto.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}</td>
+    </tr>
+    <tr style="background: linear-gradient(to right, #2563eb, #1e40af);">
+      <td colspan="4" style="text-align: right; font-weight: bold; color: white; padding: 16px; font-size: 14px;">TOTAL A PAGAR:</td>
+      <td style="text-align: right; font-weight: 900; color: white; padding: 16px; font-size: 18px; background: linear-gradient(to right, #ea580c, #c2410c);">RD$${total.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}</td>
+    </tr>
+  ` : `
+    <tr style="background: linear-gradient(to right, #2563eb, #1e40af);">
+      <td colspan="4" style="text-align: right; font-weight: bold; color: white; padding: 16px; font-size: 14px;">TOTAL:</td>
+      <td style="text-align: right; font-weight: 900; color: white; padding: 16px; font-size: 18px; background: linear-gradient(to right, #ea580c, #c2410c);">RD$${total.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}</td>
+    </tr>
+  `;
+
+  const html = `
+    <!DOCTYPE html>
+    <html lang="es">
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Cotización - ServiGaco</title>
+      <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif; background: white; }
+        .container { max-width: 900px; margin: 0 auto; background: white; overflow: hidden; }
+        .header { background: linear-gradient(135deg, #2563eb 0%, #1e40af 50%, #1e3a8a 100%); color: white; padding: 40px 30px; position: relative; overflow: hidden; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        .header::before { content: ''; position: absolute; top: -50%; right: -50%; width: 400px; height: 400px; background: rgba(234, 88, 12, 0.15); border-radius: 50%; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        .header::after { content: ''; position: absolute; bottom: -30%; left: -30%; width: 300px; height: 300px; background: rgba(234, 88, 12, 0.1); border-radius: 50%; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        .header-content { position: relative; z-index: 1; text-align: center; }
+        .logo { width: 140px; height: auto; margin: 0 auto 15px; display: block; }
+        .header h1 { font-size: 28px; font-weight: 900; margin-bottom: 5px; letter-spacing: -0.5px; }
+        .header-divider { width: 50px; height: 4px; background: linear-gradient(to right, #f97316, #ea580c); margin: 10px auto 15px; border-radius: 10px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        .header p { font-size: 12px; color: #bfdbfe; font-weight: 600; letter-spacing: 1px; margin-bottom: 15px; }
+        .header-badge { display: inline-block; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); border-radius: 8px; padding: 12px 20px; font-size: 12px; font-weight: 600; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        .content { padding: 30px; }
+        table { width: 100%; border-collapse: collapse; }
+        thead tr { background: linear-gradient(to right, #2563eb, #1e40af); color: white; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        thead th { padding: 14px 16px; text-align: left; font-weight: 700; font-size: 12px; letter-spacing: 0.5px; text-transform: uppercase; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        tbody tr { border-bottom: 1px solid #e0e7ff; }
+        tbody tr:nth-child(odd) { background: #f0f9ff; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        tbody tr:nth-child(even) { background: white; }
+        tbody td { padding: 14px 16px; font-size: 13px; }
+        tbody td:first-child { font-weight: 700; color: #1e3a8a; }
+        tbody td:nth-child(3) { text-align: center; font-weight: 600; }
+        tbody td:nth-child(4), tbody td:nth-child(5) { text-align: right; }
+        tbody td:nth-child(4) { color: #2563eb; font-weight: 600; }
+        tbody td:nth-child(5) { color: #ea580c; font-weight: 700; }
+        .footer { background: linear-gradient(to right, #1f2937, #111827); border-top: 4px solid #ea580c; padding: 25px 30px; text-align: center; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        .footer-brand { color: #f97316; font-weight: 900; font-size: 16px; letter-spacing: 1px; margin-bottom: 5px; }
+        .footer-subtitle { color: #cbd5e1; font-size: 11px; font-weight: 600; margin-bottom: 12px; }
+        .footer-text { color: #94a3b8; font-size: 11px; line-height: 1.6; border-top: 1px solid #374151; padding-top: 12px; margin-top: 12px; }
+        @page { size: 8.5in 11in; margin: 0.3in; }
+        @media print {
+          html, body { width: 8.5in; height: 11in; margin: 0; padding: 0; overflow: hidden; }
+          body { background: white; }
+          .container { box-shadow: none; border-radius: 0; max-height: 100%; overflow: hidden; }
+          * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+          .header { padding: 25px 20px; }
+          .header h1 { font-size: 24px; }
+          .header p { font-size: 10px; }
+          .content { padding: 15px; }
+          table { font-size: 11px; }
+          thead th { padding: 10px 12px; font-size: 10px; }
+          tbody td { padding: 8px 12px; font-size: 10px; }
+          .footer { padding: 15px 20px; font-size: 9px; }
+          .footer-brand { font-size: 13px; }
+          .footer-subtitle { font-size: 9px; }
+          .footer-text { font-size: 9px; }
+          .logo { width: 100px; }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <!-- HEADER -->
+        <div class="header">
+          <div class="header-content">
+            <img src="logo.png" alt="Servigaco Logo" class="logo" />
+            <div class="header-divider"></div>
+            <p>COTIZACIÓN DE SERVICIOS PROFESIONALES</p>
+            <div class="header-badge">
+              📅 ${fecha} | ✓ Presupuesto Válido
+            </div>
+          </div>
+        </div>
+
+        <!-- CONTENIDO -->
+        <div class="content">
+          <table>
+            <thead>
+              <tr>
+                <th>Servicio</th>
+                <th>Descripción</th>
+                <th style="width: 80px; text-align: center;">Cantidad</th>
+                <th style="width: 110px; text-align: right;">Precio Unit.</th>
+                <th style="width: 110px; text-align: right;">Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${Array.from(tableClone.querySelectorAll('tbody tr')).map((row, idx) => {
+                const cells = row.querySelectorAll('td');
+                if (cells.length >= 5) {
+                  return '<tr>' +
+                    '<td>' + cells[0].textContent.trim() + '</td>' +
+                    '<td>' + cells[1].textContent.trim() + '</td>' +
+                    '<td style="text-align: center;">' + cells[2].textContent.trim() + '</td>' +
+                    '<td style="text-align: right;">' + cells[3].textContent.trim() + '</td>' +
+                    '<td style="text-align: right;">' + cells[4].textContent.trim() + '</td>' +
+                  '</tr>';
+                }
+                return '';
+              }).join('')}
+            </tbody>
+            <tfoot>
+              ${resumenHTML}
+            </tfoot>
+          </table>
+        </div>
+
+        <!-- FOOTER -->
+        <div class="footer">
+          <div class="footer-brand">ServiGaco®</div>
+          <div class="footer-subtitle">SERVICIOS DE IMPRESIÓN PROFESIONALES</div>
+          <div class="footer-text">
+            Cotización generada automáticamente. Válida por 30 días.<br>
+            Para confirmar el pedido, contacta con nuestro equipo de ventas.
+          </div>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+
+  const ventana = window.open('', 'cotizacion', 'width=1200,height=800');
+  ventana.document.write(html);
+  ventana.document.close();
+
+  setTimeout(() => {
+    ventana.print();
+  }, 500);
 }
 
 // ============================================
@@ -1135,6 +1377,7 @@ document.addEventListener('DOMContentLoaded', () => {
   configurarMenuMovil();
   inicializarEventListeners();
   inicializarPrecioTiempoReal(); // ← Agregado
-  document.getElementById('generarPDF').addEventListener('click', generarPDF);
+  const btnGenPDF = document.getElementById('generarPDF');
+  if (btnGenPDF) btnGenPDF.addEventListener('click', imprimirCotizacion);
   console.log('✅ Script inicializado');
 });
