@@ -39,41 +39,7 @@
     <!-- ========================================
          🧭 NAVEGACIÓN PRINCIPAL
          ======================================== -->
-    <nav class="main-nav" role="navigation" aria-label="Navegación principal">
-      <div class="nav-container">
-        <!-- Logo -->
-        <div class="nav-brand">
-          <img src="logo.png" alt="Logo ServiGaco" class="nav-logo" />
-        </div>
-
-        <!-- Links de navegación -->
-        <ul class="nav-links">
-          <li class="nav-item">
-            <a href="index.html" class="nav-link active" id="navTesis">
-              <span class="nav-icon">🎓</span>
-              <span class="nav-text">Calculadora de Tesis</span>
-            </a>
-          </li>
-          <li class="nav-item">
-            <a href="calculadora_general.html" class="nav-link" id="navGeneral">
-              <span class="nav-icon">📋</span>
-              <span class="nav-text">Servicios Generales</span>
-            </a>
-          </li>
-        </ul>
-
-        <!-- Botón Dark Mode -->
-        <button id="theme-toggle" type="button" class="text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 rounded-lg text-sm p-2.5 mr-2 transition-all duration-300">
-          <svg id="theme-toggle-dark-icon" class="hidden w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg>
-          <svg id="theme-toggle-light-icon" class="hidden w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 100 2h1z" fill-rule="evenodd" clip-rule="evenodd"></path></svg>
-        </button>
-
-        <!-- Botón móvil (hamburguesa) -->
-        <button class="nav-toggle" aria-label="Abrir menú" aria-expanded="false">
-          <span class="hamburger"></span>
-        </button>
-      </div>
-    </nav>
+    <servigaco-nav></servigaco-nav>
 
     <!-- ========================================
          📝 SECCIÓN: CALCULADORA DE TESIS
@@ -272,27 +238,28 @@
 
         <!-- Grupo de botones -->
         <div class="button-group">
-          <button type="button" id="btnCalcular" class="btn btn-primary">
-            <span class="btn-icon">🧮</span>
+          <button type="button" id="btnCalcular" class="w-full py-3 px-6 rounded-xl font-bold text-white bg-gradient-to-r from-blue-600 via-blue-700 to-blue-800 hover:from-blue-500 hover:to-blue-700 shadow-lg shadow-blue-500/40 transform transition-all duration-200 hover:-translate-y-1 flex items-center justify-center gap-2">
+            <span class="text-xl">🧮</span>
             Calcular Total
           </button>
 
-          <button type="button" id="btnGenerar" class="btn btn-print">
-            <span class="btn-icon">🖨️</span>
+          <button type="button" id="btnGenerar" class="w-full py-3 px-6 rounded-xl font-bold text-white bg-gradient-to-r from-emerald-600 via-emerald-700 to-emerald-800 hover:from-emerald-500 hover:to-emerald-700 shadow-lg shadow-emerald-500/40 transform transition-all duration-200 hover:-translate-y-1 flex items-center justify-center gap-2">
+            <span class="text-xl">🖨️</span>
             Imprimir
           </button>
 
-          <button type="button" id="btnDescargarPdf" class="btn">
+          <button type="button" id="btnDescargarPdf" class="w-full py-3 px-6 rounded-xl font-bold text-white bg-gradient-to-r from-orange-500 via-orange-600 to-orange-700 hover:from-orange-400 hover:to-orange-600 shadow-lg shadow-orange-500/40 transform transition-all duration-200 hover:-translate-y-1 flex items-center justify-center gap-2">
+            <span class="text-xl">📄</span>
             Descargar PDF
           </button>
 
-          <button type="button" id="btnCompartir" class="btn btn-share">
-            <span class="btn-icon">📤</span>
+          <button type="button" id="btnCompartir" class="w-full py-3 px-6 rounded-xl font-bold text-white bg-gradient-to-r from-purple-600 via-purple-700 to-purple-800 hover:from-purple-500 hover:to-purple-700 shadow-lg shadow-purple-500/40 transform transition-all duration-200 hover:-translate-y-1 flex items-center justify-center gap-2">
+            <span class="text-xl">📤</span>
             Compartir PDF
           </button>
 
-          <button type="button" id="btnReiniciar" class="btn btn-secondary">
-            <span class="btn-icon">🔄</span>
+          <button type="button" id="btnReiniciar" class="w-full py-3 px-6 rounded-xl font-bold text-gray-700 bg-white border-2 border-gray-200 hover:bg-red-50 hover:text-red-600 hover:border-red-200 shadow-md transform transition-all duration-200 hover:-translate-y-1 flex items-center justify-center gap-2">
+            <span class="text-xl">🔄</span>
             Reiniciar
           </button>
         </div>
@@ -314,11 +281,11 @@
         <button 
           type="button" 
           id="btnMostrarTabla" 
-          class="btn btn-secondary btn-toggle"
+          class="w-full py-3 px-6 rounded-xl font-bold text-gray-700 bg-white border-2 border-gray-200 hover:bg-gray-50 hover:border-blue-300 shadow-md transform transition-all duration-200 hover:-translate-y-1 flex items-center justify-center gap-2"
           aria-expanded="false"
           aria-controls="tablaPrecios"
         >
-          <span class="btn-icon">📋</span>
+          <span class="text-xl">📋</span>
           Ver precios y detalles
         </button>
 
@@ -427,112 +394,14 @@
       </div>
     </section>
 
+    <servigaco-footer></servigaco-footer>
+
   </main>
 
   <!-- SCRIPTS -->
+  <script src="components.js"></script>
   <script src="script.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  
-  <!-- Script del NAV -->
-  <script>
-    // ============================================
-    // 🧭 NAVEGACIÓN - FUNCIONALIDAD
-    // ============================================
-    function inicializarNav() {
-      marcarPaginaActiva();
-      configurarMenuMovil();
-    }
-
-    function marcarPaginaActiva() {
-      const paginaActual = window.location.pathname.split('/').pop() || 'index.html';
-      
-      document.querySelectorAll('.nav-link').forEach(link => {
-        link.classList.remove('active');
-      });
-      
-      if (paginaActual === 'index.html' || paginaActual === '') {
-        document.getElementById('navTesis')?.classList.add('active');
-      } else if (paginaActual === 'calculadora_general.html') {
-        document.getElementById('navGeneral')?.classList.add('active');
-      }
-    }
-
-    function configurarMenuMovil() {
-      const navToggle = document.querySelector('.nav-toggle');
-      const navLinks = document.querySelector('.nav-links');
-      
-      if (!navToggle || !navLinks) return;
-      
-      navToggle.addEventListener('click', () => {
-        const isExpanded = navToggle.getAttribute('aria-expanded') === 'true';
-        navToggle.setAttribute('aria-expanded', !isExpanded);
-        navLinks.classList.toggle('active');
-      });
-      
-      document.querySelectorAll('.nav-link').forEach(link => {
-        link.addEventListener('click', () => {
-          navToggle.setAttribute('aria-expanded', 'false');
-          navLinks.classList.remove('active');
-        });
-      });
-      
-      document.addEventListener('click', (e) => {
-        if (!e.target.closest('.main-nav')) {
-          navToggle.setAttribute('aria-expanded', 'false');
-          navLinks.classList.remove('active');
-        }
-      });
-    }
-
-    // ===============================
-    // 🌙 DARK MODE LOGIC
-    // ===============================
-    const themeToggleBtn = document.getElementById('theme-toggle');
-    const darkIcon = document.getElementById('theme-toggle-dark-icon');
-    const lightIcon = document.getElementById('theme-toggle-light-icon');
-
-    // Check initial theme
-    if (localStorage.getItem('color-theme') === 'dark' || (!('color-theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-      document.documentElement.classList.add('dark');
-      lightIcon.classList.remove('hidden');
-    } else {
-      document.documentElement.classList.remove('dark');
-      darkIcon.classList.remove('hidden');
-    }
-
-    if (themeToggleBtn) {
-      themeToggleBtn.addEventListener('click', function() {
-        // Toggle icons
-        darkIcon.classList.toggle('hidden');
-        lightIcon.classList.toggle('hidden');
-
-        // If is set in localstorage
-        if (localStorage.getItem('color-theme')) {
-          if (localStorage.getItem('color-theme') === 'light') {
-            document.documentElement.classList.add('dark');
-            localStorage.setItem('color-theme', 'dark');
-          } else {
-            document.documentElement.classList.remove('dark');
-            localStorage.setItem('color-theme', 'light');
-          }
-        } else {
-          if (document.documentElement.classList.contains('dark')) {
-            document.documentElement.classList.remove('dark');
-            localStorage.setItem('color-theme', 'light');
-          } else {
-            document.documentElement.classList.add('dark');
-            localStorage.setItem('color-theme', 'dark');
-          }
-        }
-      });
-    }
-
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', inicializarNav);
-    } else {
-      inicializarNav();
-    }
-  </script>
 </body>
 </html>

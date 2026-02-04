@@ -2,6 +2,9 @@
 // 📋 CONFIGURACIÓN Y CONSTANTES
 // ============================================
 
+
+// 🔗 URL DE TU API DE GOOGLE SHEETS (Pégala aquí abajo)
+const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxRUMlkInT_O_C6G_q15jb8mVqVcX9SOLwu9Tl9_ucgwsu1C-ZfoIJIqrCcROo5WwSJbQ/exec';
 const PRECIOS = {
   carta: {
     bond: { bn: 6, color: 12 },
@@ -79,7 +82,6 @@ const BLOQUE_CUENTAS = `
     <!-- AQUÍ va el tiempo de entrega -->
     {{TIEMPO_ENTREGA}}
 `;
-;
 
 // ============================================
 // 🔧 UTILIDADES
@@ -187,6 +189,7 @@ const elementos = {
 
 let ultimaCotizacion = '';
 let datosGlobales = {};
+let datosParaGuardar = null; // Variable temporal para guardar en Sheets
 
 
 // ============================================
@@ -406,6 +409,13 @@ datosGlobales = {
   colorTapa
 };
 
+// Preparar datos para Google Sheets
+datosParaGuardar = {
+  tipo: 'Tesis',
+  total: totalRedondeado.toFixed(2),
+  detalle: `📚 ${tomos} tomos\n📄 ${nombreColor(elementos.tamano.value)} / ${nombreColor(elementos.papel.value)}\n📕 ${nombreColor(elementos.tipoEmpastado.value)}`
+};
+
 ultimaCotizacion = generarHTMLCotizacion({
   tomos,
   impresion,
@@ -427,9 +437,10 @@ ultimaCotizacion = generarHTMLCotizacion({
 
     
     elementos.resultado.innerHTML = ultimaCotizacion;
+    mostrarNotificacion('Cotización calculada exitosamente', 'success');
     
   } catch (error) {
-    alert(error.message);
+    mostrarNotificacion(error.message, 'error');
   }
 }
 
@@ -502,23 +513,25 @@ function generarTablaDetalle(datos) {
   const filaCD = (datos.cd && datos.cantidadCd) ? generarFilaCD(datos.cantidadCd, datos.cdVal) : '';
 
   return `
-    <table class="tabla-cotizacion">
-      <thead>
-        <tr>
-          <th>Concepto</th>
-          <th>Detalle</th>
-          <th>Cantidad</th>
-          <th>Precio Unit.</th>
-          <th>Subtotal</th>
-        </tr>
-      </thead>
-      <tbody>
-        ${generarFilaImpresion(datos)}
-        ${generarFilaEmpastado(datos)}
-        ${filaLomo}
-        ${filaCD}
-      </tbody>
-    </table>
+    <div style="overflow-x: auto; width: 100%; margin-bottom: 1rem; border-radius: 0.5rem; border: 1px solid var(--border-light);">
+      <table class="tabla-cotizacion" style="min-width: 650px; margin-top: 0;">
+        <thead>
+          <tr>
+            <th>Concepto</th>
+            <th>Detalle</th>
+            <th>Cantidad</th>
+            <th>Precio Unit.</th>
+            <th>Subtotal</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${generarFilaImpresion(datos)}
+          ${generarFilaEmpastado(datos)}
+          ${filaLomo}
+          ${filaCD}
+        </tbody>
+      </table>
+    </div>
   `;
 }
 
@@ -643,8 +656,11 @@ function generarTiempoEntrega(tipoEmp) {
  */
 function imprimir() {
   if (!ultimaCotizacion) {
-    return alert('Calcule primero la cotización');
+    return mostrarNotificacion('Calcule primero la cotización', 'warning');
   }
+
+  // Guardar en Google Sheets al imprimir
+  if (datosParaGuardar) enviarAGoogleSheets(datosParaGuardar);
 
   const ventana = window.open('', '', 'width=1000,height=700');
   const headHTML = document.head.innerHTML;
@@ -697,7 +713,7 @@ function imprimir() {
  */
 async function compartirPDFMovil() {
   if (!ultimaCotizacion) {
-    alert('Calcule primero la cotización');
+    mostrarNotificacion('Calcule primero la cotización', 'warning');
     return;
   }
 
@@ -709,7 +725,7 @@ async function compartirPDFMovil() {
     await compartirODescargarPDF(pdfBlob);
   } catch (error) {
     console.error('Error al generar PDF:', error);
-    alert('Error al generar la cotización. Por favor, intente nuevamente.');
+    mostrarNotificacion('Error al generar la cotización', 'error');
   } finally {
     document.body.removeChild(wrapper);
   }
@@ -823,9 +839,12 @@ document.getElementById("btnDescargarPdf").addEventListener("click", descargarPD
 
 async function descargarPDF() {
   if (!ultimaCotizacion) {
-    alert("Primero genera la cotización");
+    mostrarNotificacion("Primero genera la cotización", 'warning');
     return;
   }
+
+  // Guardar en Google Sheets al descargar
+  if (datosParaGuardar) enviarAGoogleSheets(datosParaGuardar);
 
   const wrapper = document.createElement("div");
   wrapper.style.width = "210mm";
@@ -903,6 +922,9 @@ function reiniciar() {
 
   // Actualizar vista
   actualizarVista();
+  
+  guardarTesisLocalStorage();
+  mostrarNotificacion('Formulario reiniciado', 'success');
 }
 
 // ============================================
@@ -915,6 +937,9 @@ function reiniciar() {
 function inicializar() {
   // Establecer valor por defecto
   elementos.tipoEmpastado.value = 'tapa_dura';
+  
+  // Cargar datos guardados (si existen)
+  cargarTesisLocalStorage();
   
   // Configurar eventos principales
   [elementos.tamano, elementos.papel, elementos.tipoEmpastado].forEach(el => {
@@ -935,6 +960,13 @@ function inicializar() {
     elementos.btnMostrarTabla.addEventListener('click', toggleTablaPrecios);
   }
 
+  // Listeners para persistencia en todos los inputs
+  const inputs = document.querySelectorAll('input, select');
+  inputs.forEach(el => {
+    el.addEventListener('change', guardarTesisLocalStorage);
+    el.addEventListener('input', guardarTesisLocalStorage);
+  });
+
   // Actualizar vista inicial
   actualizarVista();
 }
@@ -944,4 +976,107 @@ if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', inicializar);
 } else {
   inicializar();
+}
+
+// ============================================
+// 💾 PERSISTENCIA (LOCALSTORAGE)
+// ============================================
+
+function guardarTesisLocalStorage() {
+  const datos = {
+    tamano: document.getElementById('tamano')?.value,
+    papel: document.getElementById('papel')?.value,
+    bn: document.getElementById('bn')?.value,
+    color: document.getElementById('color')?.value,
+    paginas: document.getElementById('paginas')?.value,
+    tomos: document.getElementById('tomos')?.value,
+    tipoEmpastado: document.getElementById('tipoEmpastado')?.value,
+    colorTapa: document.getElementById('colorTapa')?.value,
+    lomo: document.getElementById('lomo')?.value,
+    llevaCd: document.getElementById('llevaCd')?.value,
+    cantidadCd: document.getElementById('cantidadCd')?.value
+  };
+  localStorage.setItem('cotizacion_tesis_datos', JSON.stringify(datos));
+}
+
+function cargarTesisLocalStorage() {
+  const guardado = localStorage.getItem('cotizacion_tesis_datos');
+  if (guardado) {
+    try {
+      const datos = JSON.parse(guardado);
+      
+      // Restaurar valores si existen los elementos
+      if (datos.tamano) document.getElementById('tamano').value = datos.tamano;
+      if (datos.papel) document.getElementById('papel').value = datos.papel;
+      if (datos.bn) document.getElementById('bn').value = datos.bn;
+      if (datos.color) document.getElementById('color').value = datos.color;
+      if (datos.paginas) document.getElementById('paginas').value = datos.paginas;
+      if (datos.tomos) document.getElementById('tomos').value = datos.tomos;
+      if (datos.tipoEmpastado) document.getElementById('tipoEmpastado').value = datos.tipoEmpastado;
+      if (datos.colorTapa) document.getElementById('colorTapa').value = datos.colorTapa;
+      if (datos.lomo) document.getElementById('lomo').value = datos.lomo;
+      if (datos.llevaCd) document.getElementById('llevaCd').value = datos.llevaCd;
+      if (datos.cantidadCd) document.getElementById('cantidadCd').value = datos.cantidadCd;
+
+      // Actualizar visibilidad de secciones basada en los datos cargados
+      actualizarVista();
+      toggleSeccionCD();
+    } catch (e) {
+      console.error('Error cargando datos de tesis', e);
+    }
+  }
+}
+
+// ============================================
+// 🔔 NOTIFICACIONES TOAST
+// ============================================
+
+function mostrarNotificacion(mensaje, tipo = 'success') {
+  let container = document.querySelector('.toast-container');
+  if (!container) {
+    container = document.createElement('div');
+    container.className = 'toast-container';
+    document.body.appendChild(container);
+  }
+
+  const iconos = {
+    success: '✅',
+    error: '❌',
+    warning: '⚠️'
+  };
+
+  const toast = document.createElement('div');
+  toast.className = `toast ${tipo}`;
+  toast.innerHTML = `
+    <span class="toast-icon">${iconos[tipo]}</span>
+    <span class="toast-message">${mensaje}</span>
+  `;
+
+  container.appendChild(toast);
+
+  setTimeout(() => {
+    toast.style.animation = 'toastFadeOut 0.4s forwards';
+    setTimeout(() => toast.remove(), 400);
+  }, 3000);
+}
+
+// ============================================
+// ☁️ GOOGLE SHEETS API
+// ============================================
+
+function enviarAGoogleSheets(datos) {
+  if (GOOGLE_SCRIPT_URL === 'TU_URL_DE_GOOGLE_APPS_SCRIPT_AQUI' || !GOOGLE_SCRIPT_URL) {
+    console.warn('⚠️ Falta configurar la URL de Google Sheets en el script.');
+    return;
+  }
+
+  fetch(GOOGLE_SCRIPT_URL, {
+    method: 'POST',
+    mode: 'no-cors',
+    headers: {
+      'Content-Type': 'text/plain'
+    },
+    body: JSON.stringify(datos)
+  }).then(() => console.log('✅ Pedido guardado en Sheets'))
+    .catch(err => console.error('❌ Error guardando en Sheets:', err));
 }

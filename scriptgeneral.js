@@ -5,6 +5,9 @@ let cotizacion = [];
 
 console.log('🚀 Script cargando...');
 
+// 🔗 URL DE TU API DE GOOGLE SHEETS (Pégala aquí abajo)
+const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxRUMlkInT_O_C6G_q15jb8mVqVcX9SOLwu9Tl9_ucgwsu1C-ZfoIJIqrCcROo5WwSJbQ/exec';
+
 // Cargar datos guardados al iniciar
 document.addEventListener('DOMContentLoaded', cargarDeLocalStorage);
 
@@ -771,6 +774,14 @@ function generarCotizacion() {
   }
 
   txt += `\nTOTAL: RD$${(subtotal + imp).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}`;
+  
+  // Guardar en Google Sheets
+  enviarAGoogleSheets({
+    tipo: 'General',
+    total: (subtotal + imp).toFixed(2),
+    detalle: cotizacion.map(i => `• ${i.cantidad}x ${i.nombre}`).join('\n')
+  });
+
   // En lugar de alert, copiamos al portapapeles o usamos la notificación
   mostrarNotificacion('Resumen generado (ver PDF para detalle)', 'success');
 }
@@ -1466,6 +1477,27 @@ function mostrarNotificacion(mensaje, tipo = 'success') {
     toast.style.animation = 'toastFadeOut 0.4s forwards';
     setTimeout(() => toast.remove(), 400);
   }, 3000);
+}
+
+// ============================================
+// ☁️ GOOGLE SHEETS API
+// ============================================
+
+function enviarAGoogleSheets(datos) {
+  if (GOOGLE_SCRIPT_URL === 'https://script.google.com/macros/library/d/1x_TcUnJMSh5hCHk3h6pU6xLuX7s8YnW0tABFjx9TuA8ObyDXHQtVlMwk/2' || !GOOGLE_SCRIPT_URL) {
+    console.warn('⚠️ Falta configurar la URL de Google Sheets en el script.');
+    return;
+  }
+
+  fetch(GOOGLE_SCRIPT_URL, {
+    method: 'POST',
+    mode: 'no-cors', // Necesario para enviar datos a Google Apps Script sin errores de CORS
+    headers: {
+      'Content-Type': 'text/plain'
+    },
+    body: JSON.stringify(datos)
+  }).then(() => console.log('✅ Pedido guardado en Sheets'))
+    .catch(err => console.error('❌ Error guardando en Sheets:', err));
 }
 
 // ============================================

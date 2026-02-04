@@ -76,12 +76,31 @@ html.dark {
 }
 
 /* Ajustes específicos para modo oscuro */
+html.dark .cotizacion-tabla tbody tr:nth-child(odd) {
+  background-color: var(--bg-secondary) !important;
+  color: var(--text-primary) !important;
+}
 html.dark .cotizacion-tabla tbody tr:nth-child(even) {
-  background: rgba(30, 41, 59, 0.5);
+  background-color: var(--bg-tertiary) !important;
+  color: var(--text-primary) !important;
 }
 html.dark .cotizacion-tabla tbody tr:hover {
-  background: #334155;
+  background-color: #334155 !important;
 }
+
+/* Ajustes para la tabla de tesis (.tabla-cotizacion) en modo oscuro */
+html.dark .tabla-cotizacion tbody tr:nth-child(odd) {
+  background-color: var(--bg-secondary) !important;
+  color: var(--text-primary) !important;
+}
+html.dark .tabla-cotizacion tbody tr:nth-child(even) {
+  background-color: var(--bg-tertiary) !important;
+  color: var(--text-primary) !important;
+}
+html.dark .tabla-cotizacion tbody tr:hover {
+  background-color: #334155 !important;
+}
+
 html.dark .total-row {
   background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
   border-top-color: var(--primary-blue);
@@ -100,6 +119,12 @@ html.dark .tiempo-entrega strong {
 }
 html.dark .tiempo-entrega p {
   color: #fde68a;
+}
+
+/* Ajuste del contenedor de resultados en modo oscuro */
+html.dark .resultado {
+  background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%);
+  color: var(--text-primary);
 }
 
 /* ======================================
@@ -590,6 +615,14 @@ button.sec:hover {
   letter-spacing: 0.5px;
 }
 
+/* Ajuste para móviles de la tabla total */
+@media (max-width: 480px) {
+  .tabla-total td {
+    padding: var(--spacing-sm);
+    font-size: 1rem;
+  }
+}
+
 /* ===== CUENTAS DE PAGO ===== */
 .cuentas-pago {
   margin-top: var(--spacing-xl);
@@ -1016,7 +1049,6 @@ button.sec:hover {
 .tabla-cotizacion {
   width: 100%;
   max-width: 100%;
-  table-layout: fixed;
   border-collapse: collapse;
   margin-top: 16px;
   font-size: 13px;
@@ -1026,8 +1058,6 @@ button.sec:hover {
 .tabla-cotizacion td {
   border: 1.5px solid #999;
   padding: 6px;
-  overflow-wrap: break-word;
-  word-break: break-word;
 }
 
 .tabla-cotizacion thead th {
@@ -1058,6 +1088,55 @@ button.sec:hover {
   .cotizacion {
     max-width: 820px; /* límite elegante */
   }
+}
+
+/* ======================================
+   🔔 TOAST NOTIFICATIONS (NUEVO)
+   ====================================== */
+.toast-container {
+  position: fixed;
+  top: 24px;
+  right: 24px;
+  z-index: 10000;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  pointer-events: none;
+}
+
+.toast {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  padding: 16px 20px;
+  border-radius: 12px;
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 300px;
+  max-width: 400px;
+  border-left: 5px solid var(--primary-blue);
+  animation: toastSlideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 600;
+  font-size: 0.95rem;
+  pointer-events: auto;
+  border: 1px solid var(--border-light);
+}
+
+.toast.error { border-left-color: #ef4444; }
+.toast.success { border-left-color: #10b981; }
+.toast.warning { border-left-color: #f59e0b; }
+
+.toast-icon { font-size: 1.4rem; }
+
+@keyframes toastSlideIn {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes toastFadeOut {
+  to { opacity: 0; transform: translateY(-20px); }
 }
 
 * {
