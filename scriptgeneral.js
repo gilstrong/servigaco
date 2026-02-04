@@ -5,6 +5,9 @@ let cotizacion = [];
 
 console.log('🚀 Script cargando...');
 
+// Cargar datos guardados al iniciar
+document.addEventListener('DOMContentLoaded', cargarDeLocalStorage);
+
 // ============================================
 // 💰 TABLAS DE PRECIOS ACTUALIZADAS
 // ============================================
@@ -240,21 +243,24 @@ function calcularPrecioPlastificado(tamano, llevaCorte, cantidadHojas, piezasPor
 function agregarACotizacion(servicio) {
   cotizacion.push(servicio);
   actualizarCotizacion();
+  mostrarNotificacion('Servicio agregado correctamente', 'success');
 }
 
 function eliminarDeCotizacion(index) {
   cotizacion.splice(index, 1);
   actualizarCotizacion();
+  mostrarNotificacion('Servicio eliminado', 'warning');
 }
 
 function limpiarCotizacion() {
   if (cotizacion.length === 0) {
-    alert('La cotización ya está vacía');
+    mostrarNotificacion('La cotización ya está vacía', 'warning');
     return;
   }
   if (confirm('¿Limpiar toda la cotización?')) {
     cotizacion = [];
     actualizarCotizacion();
+    mostrarNotificacion('Cotización limpiada', 'success');
   }
 }
 
@@ -270,14 +276,17 @@ function actualizarCotizacion() {
   const comprobanteSection = document.getElementById('comprobanteSection');
   const cotizacionAcciones = document.getElementById('cotizacionAcciones');
 
+  // Guardar en LocalStorage cada vez que cambia
+  guardarEnLocalStorage();
+
   if (contador) contador.textContent = cotizacion.length;
 
   if (cotizacion.length === 0) {
     if (cuerpoTabla) {
       cuerpoTabla.innerHTML = `
-        <tr class="cotizacion-vacia bg-gray-50">
+        <tr class="cotizacion-vacia bg-gray-50 dark:bg-gray-800">
           <td colspan="6" class="p-12 text-center">
-            <div class="flex flex-col items-center justify-center text-gray-500">
+            <div class="flex flex-col items-center justify-center text-gray-500 dark:text-gray-400">
               <span class="text-6xl mb-4">📭</span>
               <p class="text-lg font-medium">No hay servicios en la cotización</p>
               <p class="text-sm text-gray-400 mt-1">Selecciona un servicio abajo para empezar</p>
@@ -325,12 +334,12 @@ function actualizarCotizacion() {
 
   if (cuerpoTabla) {
     cuerpoTabla.innerHTML = cotizacion.map((item, i) => `
-      <tr class="hover:bg-blue-50 transition-colors duration-150 group border-b border-gray-50 last:border-none">
-        <td class="px-6 py-4 text-gray-800 font-medium">${item.nombre}</td>
-        <td class="px-6 py-4 text-gray-600 text-sm">${item.descripcion}</td>
-        <td class="px-6 py-4 text-center text-gray-700 font-medium bg-gray-50/50">${item.cantidad || 1}</td>
-        <td class="px-6 py-4 text-right text-gray-600 font-medium">RD$${(item.precioUnitario || item.precio).toFixed(2)}</td>
-        <td class="px-6 py-4 text-right font-bold text-blue-700 bg-blue-50/30">RD$${item.precio.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}</td>
+      <tr class="bg-white dark:bg-gray-900 hover:bg-blue-50 dark:hover:bg-gray-700 transition-colors duration-150 group border-b border-gray-50 dark:border-gray-700 last:border-none">
+        <td class="px-6 py-4 text-gray-800 dark:text-gray-100 font-medium">${item.nombre}</td>
+        <td class="px-6 py-4 text-gray-600 dark:text-gray-300 text-sm">${item.descripcion}</td>
+        <td class="px-6 py-4 text-center text-gray-700 dark:text-gray-200 font-medium bg-gray-50/50 dark:bg-gray-700/50">${item.cantidad || 1}</td>
+        <td class="px-6 py-4 text-right text-gray-600 dark:text-gray-300 font-medium">RD$${(item.precioUnitario || item.precio).toFixed(2)}</td>
+        <td class="px-6 py-4 text-right font-bold text-blue-700 dark:text-blue-300 bg-blue-50/30 dark:bg-blue-900/20">RD$${item.precio.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}</td>
         <td class="px-6 py-4 text-center">
           <button class="p-2 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-100 transition-all duration-200 transform hover:scale-110 shadow-sm border border-transparent hover:border-red-200" onclick="eliminarDeCotizacion(${i})" title="Eliminar">
             🗑️
@@ -352,9 +361,9 @@ function agregarImpresion() {
   const caras = document.getElementById('caras')?.value;
   const manual = parseFloat(document.getElementById('precioPersonalImpresion')?.value || 0);
 
-  if (!cant || cant <= 0) { alert('Cantidad inválida'); return; }
-  if (!tipo) { alert('Seleccione el tipo de impresión'); return; }
-  if (!tamano) { alert('Seleccione el tamaño'); return; }
+  if (!cant || cant <= 0) { mostrarNotificacion('Cantidad inválida', 'error'); return; }
+  if (!tipo) { mostrarNotificacion('Seleccione el tipo de impresión', 'error'); return; }
+  if (!tamano) { mostrarNotificacion('Seleccione el tamaño', 'error'); return; }
 
   const tipos = { 
     bn: 'B/N', 
@@ -378,7 +387,7 @@ function agregarImpresion() {
     precio = calcularPrecioImpresion(cant, tipo, tamano);
     
     if (precio === 0) {
-      alert('No se pudo calcular el precio. Use precio personalizado.');
+      mostrarNotificacion('No se pudo calcular el precio. Use precio personalizado.', 'error');
       return;
     }
   }
@@ -416,24 +425,24 @@ function agregarLibro() {
   const totalPaginas = paginasBN + paginasColor + paginasFullColor;
   
   if (totalPaginas === 0) {
-    alert('Debe especificar al menos 1 página (B/N, Color o Full Color)');
+    mostrarNotificacion('Debe especificar al menos 1 página', 'error');
     return;
   }
 
   if (!juegos || juegos <= 0) {
-    alert('Número de juegos inválido');
+    mostrarNotificacion('Número de juegos inválido', 'error');
     return;
   }
 
   // Validar tapa blanda solo para carta
   if (tipoTerminacion === 'tapa_blanda' && tamano !== 'carta') {
-    alert('Empastado tapa blanda solo disponible para tamaño carta');
+    mostrarNotificacion('Tapa blanda solo disponible para carta', 'error');
     return;
   }
 
   // Validar límite de encuadernado espiral
   if (tipoTerminacion === 'espiral' && totalPaginas > 1000) {
-    alert('El encuadernado espiral tiene un límite de 1000 páginas totales');
+    mostrarNotificacion('Límite de espiral: 1000 páginas', 'error');
     return;
   }
 
@@ -546,12 +555,12 @@ function agregarEncuadernado() {
   const cant = parseInt(document.getElementById('cantidadEncuadernado')?.value || 1);
   const manual = parseFloat(document.getElementById('precioPersonalEncuadernado')?.value || 0);
 
-  if (!pag || pag <= 0) { alert('Páginas inválidas'); return; }
-  if (!cant || cant <= 0) { alert('Cantidad inválida'); return; }
+  if (!pag || pag <= 0) { mostrarNotificacion('Páginas inválidas', 'error'); return; }
+  if (!cant || cant <= 0) { mostrarNotificacion('Cantidad inválida', 'error'); return; }
 
   // Validar límite máximo
   if (pag > 1000 && !manual) {
-    alert('El encuadernado espiral tiene un límite de 1000 páginas. Use precio personalizado para cantidades mayores.');
+    mostrarNotificacion('Límite de 1000 páginas. Use precio personalizado.', 'warning');
     return;
   }
 
@@ -564,7 +573,7 @@ function agregarEncuadernado() {
   }
   
   if (precioUnitario === 0 && !manual) {
-    alert('No se puede calcular el precio. Use precio personalizado.');
+    mostrarNotificacion('No se puede calcular. Use precio personalizado.', 'error');
     return;
   }
   
@@ -586,14 +595,14 @@ function agregarEmpastado() {
   const cant = parseInt(document.getElementById('cantidadEmpastado')?.value);
   const manual = parseFloat(document.getElementById('precioPersonalEmpastado')?.value || 0);
 
-  if (!cant || cant <= 0) { alert('Cantidad inválida'); return; }
+  if (!cant || cant <= 0) { mostrarNotificacion('Cantidad inválida', 'error'); return; }
 
   const tipoMap = { tapa_dura: 'Tapa Dura', tapa_blanda: 'Tapa Blanda' };
   const tipo = tipoMap[tipoRaw];
   
   // Validar tapa blanda solo para carta
   if (tipoRaw === 'tapa_blanda' && tam !== 'carta') {
-    alert('Empastado tapa blanda solo disponible para tamaño carta. Use precio personalizado o seleccione otro tamaño.');
+    mostrarNotificacion('Tapa blanda solo para carta. Use personalizado.', 'warning');
     return;
   }
   
@@ -606,7 +615,7 @@ function agregarEmpastado() {
   }
   
   if (precioUnitario === 0 && !manual) {
-    alert('Este tamaño no está disponible para este tipo. Use precio personalizado.');
+    mostrarNotificacion('Tamaño no disponible. Use precio personalizado.', 'error');
     return;
   }
   
@@ -632,8 +641,8 @@ function agregarPloteo() {
   const alto = parseFloat(document.getElementById('altoPloteo')?.value || 0);
   const manual = parseFloat(document.getElementById('precioPersonalPloteo')?.value || 0);
 
-  if (!cant || cant <= 0) { alert('Cantidad inválida'); return; }
-  if (tipoTam === 'personalizado' && (!ancho || !alto)) { alert('Ingrese ancho y alto'); return; }
+  if (!cant || cant <= 0) { mostrarNotificacion('Cantidad inválida', 'error'); return; }
+  if (tipoTam === 'personalizado' && (!ancho || !alto)) { mostrarNotificacion('Ingrese ancho y alto', 'error'); return; }
 
   let precio;
   let precioUnitario;
@@ -683,8 +692,8 @@ function agregarPlastificado() {
   const cant = parseInt(document.getElementById('cantidadPlastificado')?.value);
   const manual = parseFloat(document.getElementById('precioPersonalPlastificado')?.value || 0);
 
-  if (!cant || cant <= 0) { alert('Cantidad inválida'); return; }
-  if (corte && (!piezas || piezas <= 0)) { alert('Cantidad de piezas inválida'); return; }
+  if (!cant || cant <= 0) { mostrarNotificacion('Cantidad inválida', 'error'); return; }
+  if (corte && (!piezas || piezas <= 0)) { mostrarNotificacion('Cantidad de piezas inválida', 'error'); return; }
 
   const tamanoTexto = {
     cedula: 'Cédula',
@@ -742,7 +751,7 @@ function limpiarFormulario(formId) {
 // ============================================
 
 function generarCotizacion() {
-  if (cotizacion.length === 0) { alert('Cotización vacía'); return; }
+  if (cotizacion.length === 0) { mostrarNotificacion('Cotización vacía', 'warning'); return; }
 
   let txt = '=== COTIZACIÓN ===\n\n';
   cotizacion.forEach((item, i) => {
@@ -762,7 +771,8 @@ function generarCotizacion() {
   }
 
   txt += `\nTOTAL: RD$${(subtotal + imp).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}`;
-  alert(txt);
+  // En lugar de alert, copiamos al portapapeles o usamos la notificación
+  mostrarNotificacion('Resumen generado (ver PDF para detalle)', 'success');
 }
 
 // ============================================
@@ -851,6 +861,9 @@ function inicializarEventListeners() {
 
   const btnGen = document.getElementById('btnGenerarCotizacion');
   if (btnGen) btnGen.addEventListener('click', generarCotizacion);
+
+  const btnWsp = document.getElementById('btnWhatsapp');
+  if (btnWsp) btnWsp.addEventListener('click', enviarWhatsApp);
   
   // Event listeners para el resumen del libro en tiempo real
   const camposLibro = ['libroPaginasBN', 'libroPaginasColor', 'libroPaginasFullColor', 'libroJuegos', 'libroTerminacion'];
@@ -1119,7 +1132,7 @@ function generarPDF() {
 
   // Clonar tabla y limpiar elementos interactivos (botones, inputs)
   const originalTable = document.getElementById('cotizacionTabla');
-  if (!originalTable) { alert('No se encontró la tabla de cotización'); return; }
+  if (!originalTable) { mostrarNotificacion('No se encontró la tabla', 'error'); return; }
 
   const tableClone = originalTable.cloneNode(true);
   // Eliminar columna de acciones (última columna) y botones
@@ -1188,7 +1201,7 @@ function generarPDF() {
     }).catch(err => {
       console.error('Error generando PDF:', err);
       if (document.body.contains(tempDiv)) document.body.removeChild(tempDiv);
-      alert('Ocurrió un error al generar el PDF. Revisa la consola.');
+      mostrarNotificacion('Error al generar PDF', 'error');
     });
   };
 
@@ -1200,10 +1213,10 @@ function generarPDF() {
 // ============================================
 
 function imprimirCotizacion() {
-  if (cotizacion.length === 0) { alert('Cotización vacía'); return; }
+  if (cotizacion.length === 0) { mostrarNotificacion('Cotización vacía', 'warning'); return; }
 
   const originalTable = document.getElementById('cotizacionTabla');
-  if (!originalTable) { alert('No se encontró la tabla de cotización'); return; }
+  if (!originalTable) { mostrarNotificacion('No se encontró la tabla', 'error'); return; }
 
   const tableClone = originalTable.cloneNode(true);
   tableClone.querySelectorAll('tr').forEach(row => {
@@ -1368,6 +1381,91 @@ function imprimirCotizacion() {
   setTimeout(() => {
     ventana.print();
   }, 500);
+}
+
+// ============================================
+// 💾 PERSISTENCIA (LOCALSTORAGE)
+// ============================================
+
+function guardarEnLocalStorage() {
+  localStorage.setItem('cotizacion_servigaco', JSON.stringify(cotizacion));
+}
+
+function cargarDeLocalStorage() {
+  const guardado = localStorage.getItem('cotizacion_servigaco');
+  if (guardado) {
+    try {
+      cotizacion = JSON.parse(guardado);
+      actualizarCotizacion();
+    } catch (e) {
+      console.error('Error cargando cotización guardada', e);
+    }
+  }
+}
+
+// ============================================
+// 💬 WHATSAPP
+// ============================================
+
+function enviarWhatsApp() {
+  if (cotizacion.length === 0) {
+    mostrarNotificacion('Agrega productos antes de enviar', 'warning');
+    return;
+  }
+
+  let mensaje = "*HOLA, QUIERO COTIZAR LO SIGUIENTE:*\n\n";
+  
+  cotizacion.forEach((item, i) => {
+    mensaje += `*${i + 1}. ${item.nombre}*\n`;
+    mensaje += `   ${item.descripcion}\n`;
+    mensaje += `   Precio: RD$${item.precio.toFixed(2)}\n\n`;
+  });
+
+  const totalEl = document.getElementById('totalAmount');
+  const totalTexto = totalEl ? totalEl.textContent : '0.00';
+  
+  mensaje += `*TOTAL ESTIMADO: ${totalTexto}*`;
+
+  const numeroTelefono = "18096821075"; // Tu número
+  const url = `https://wa.me/${numeroTelefono}?text=${encodeURIComponent(mensaje)}`;
+  
+  window.open(url, '_blank');
+}
+
+// ============================================
+// 🔔 NOTIFICACIONES TOAST
+// ============================================
+
+function mostrarNotificacion(mensaje, tipo = 'success') {
+  // Crear contenedor si no existe
+  let container = document.querySelector('.toast-container');
+  if (!container) {
+    container = document.createElement('div');
+    container.className = 'toast-container';
+    document.body.appendChild(container);
+  }
+
+  // Iconos según tipo
+  const iconos = {
+    success: '✅',
+    error: '❌',
+    warning: '⚠️'
+  };
+
+  const toast = document.createElement('div');
+  toast.className = `toast ${tipo}`;
+  toast.innerHTML = `
+    <span class="toast-icon">${iconos[tipo]}</span>
+    <span class="toast-message">${mensaje}</span>
+  `;
+
+  container.appendChild(toast);
+
+  // Eliminar después de 3 segundos
+  setTimeout(() => {
+    toast.style.animation = 'toastFadeOut 0.4s forwards';
+    setTimeout(() => toast.remove(), 400);
+  }, 3000);
 }
 
 // ============================================
