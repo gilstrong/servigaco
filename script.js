@@ -413,7 +413,7 @@ datosGlobales = {
 datosParaGuardar = {
   tipo: 'Tesis',
   total: totalRedondeado.toFixed(2),
-  detalle: `📚 ${tomos} tomos\n📄 ${nombreColor(elementos.tamano.value)} / ${nombreColor(elementos.papel.value)}\n📕 ${nombreColor(elementos.tipoEmpastado.value)}`
+  detalle: `📚 ${tomos} tomos - RD$${totalRedondeado.toFixed(2)}\n📄 ${nombreColor(elementos.tamano.value)} / ${nombreColor(elementos.papel.value)}\n📕 ${nombreColor(elementos.tipoEmpastado.value)}`
 };
 
 ultimaCotizacion = generarHTMLCotizacion({

@@ -726,6 +726,28 @@ function agregarPlastificado() {
   limpiarFormulario('formPlastificado');
 }
 
+function agregarPersonalizado() {
+  const desc = document.getElementById('descPersonalizado')?.value;
+  const cant = parseInt(document.getElementById('cantPersonalizado')?.value || 1);
+  const precioUnit = parseFloat(document.getElementById('precioPersonalizado')?.value || 0);
+
+  if (!desc) { mostrarNotificacion('Ingrese una descripción', 'error'); return; }
+  if (!cant || cant <= 0) { mostrarNotificacion('Cantidad inválida', 'error'); return; }
+  if (precioUnit <= 0) { mostrarNotificacion('Ingrese el precio unitario', 'error'); return; }
+
+  const total = cant * precioUnit;
+
+  agregarACotizacion({
+    nombre: 'Servicio Personalizado',
+    descripcion: desc,
+    cantidad: cant,
+    precioUnitario: precioUnit,
+    precio: total
+  });
+  
+  limpiarFormulario('formPersonalizado');
+}
+
 // ============================================
 // 🧹 LIMPIAR FORMULARIOS
 // ============================================
@@ -779,11 +801,50 @@ function generarCotizacion() {
   enviarAGoogleSheets({
     tipo: 'General',
     total: (subtotal + imp).toFixed(2),
-    detalle: cotizacion.map(i => `• ${i.cantidad}x ${i.nombre}`).join('\n')
+    detalle: cotizacion.map(i => `• ${i.cantidad}x ${i.nombre} - RD$${i.precio.toFixed(2)}`).join('\n')
   });
 
   // En lugar de alert, copiamos al portapapeles o usamos la notificación
   mostrarNotificacion('Resumen generado (ver PDF para detalle)', 'success');
+}
+
+// ============================================
+// 💾 EXPORTACIÓN A SISTEMA LEGACY (VIEJO)
+// ============================================
+
+function exportarParaSistemaViejo() {
+  if (cotizacion.length === 0) {
+    mostrarNotificacion('No hay datos para exportar', 'warning');
+    return;
+  }
+
+  // 1. Definir el formato. La mayoría de sistemas viejos aceptan CSV (valores separados por comas)
+  // Formato genérico: CODIGO, CANTIDAD, DESCRIPCION, PRECIO_UNITARIO, TOTAL
+  let csvContent = "data:text/csv;charset=utf-8,";
+  
+  // Encabezados (Opcional: algunos sistemas viejos no quieren encabezados, puedes comentar esta línea)
+  csvContent += "Codigo,Cantidad,Descripcion,PrecioUnitario,Total\r\n";
+
+  cotizacion.forEach((item, index) => {
+    // Limpiamos la descripción para quitar comas o saltos de línea que rompan el CSV
+    const descripcionLimpia = item.descripcion.replace(/(\r\n|\n|\r)/gm, " ").replace(/,/g, " ");
+    const codigo = `SERV-${index + 1}`; // Generamos un código genérico
+    
+    // Construimos la línea
+    const row = `${codigo},${item.cantidad},"${item.nombre} - ${descripcionLimpia}",${item.precioUnitario.toFixed(2)},${item.precio.toFixed(2)}`;
+    csvContent += row + "\r\n";
+  });
+
+  // 2. Crear enlace de descarga invisible
+  const encodedUri = encodeURI(csvContent);
+  const link = document.createElement("a");
+  link.setAttribute("href", encodedUri);
+  link.setAttribute("download", `importacion_factura_${new Date().getTime()}.csv`);
+  document.body.appendChild(link); // Requerido para Firefox
+  link.click();
+  document.body.removeChild(link);
+  
+  mostrarNotificacion('Archivo de integración descargado', 'success');
 }
 
 // ============================================
@@ -870,11 +931,14 @@ function inicializarEventListeners() {
   const btnLimp = document.getElementById('btnLimpiarCotizacion');
   if (btnLimp) btnLimp.addEventListener('click', limpiarCotizacion);
 
-  const btnGen = document.getElementById('btnGenerarCotizacion');
+  const btnGen = document.getElementById('btnGenerarCotizacion'); // Botón pequeño
   if (btnGen) btnGen.addEventListener('click', generarCotizacion);
 
   const btnWsp = document.getElementById('btnWhatsapp');
   if (btnWsp) btnWsp.addEventListener('click', enviarWhatsApp);
+
+  const btnExp = document.getElementById('btnExportarSistema');
+  if (btnExp) btnExp.addEventListener('click', exportarParaSistemaViejo);
   
   // Event listeners para el resumen del libro en tiempo real
   const camposLibro = ['libroPaginasBN', 'libroPaginasColor', 'libroPaginasFullColor', 'libroJuegos', 'libroTerminacion'];
@@ -1070,6 +1134,20 @@ function calcularPrecioPlastificadoTiempoReal() {
   }
 }
 
+function calcularPrecioPersonalizadoTiempoReal() {
+  const cant = parseInt(document.getElementById('cantPersonalizado')?.value || 0);
+  const precio = parseFloat(document.getElementById('precioPersonalizado')?.value || 0);
+  const div = document.getElementById('resumenPersonalizado');
+  const totalSpan = document.getElementById('totalPersonalizado');
+
+  if (cant > 0 && precio > 0) {
+    if (div) div.style.display = 'block';
+    if (totalSpan) totalSpan.textContent = `RD$${(cant * precio).toFixed(2)}`;
+  } else {
+    if (div) div.style.display = 'none';
+  }
+}
+
 // ============================================
 // 🎯 EVENT LISTENERS PARA PRECIOS EN TIEMPO REAL
 // ============================================
@@ -1124,10 +1202,20 @@ function inicializarPrecioTiempoReal() {
       elemento.addEventListener('change', calcularPrecioPlastificadoTiempoReal);
     }
   });
+
+  // Personalizado
+  const camposPersonalizado = ['cantPersonalizado', 'precioPersonalizado'];
+  camposPersonalizado.forEach(id => {
+    const elemento = document.getElementById(id);
+    if (elemento) {
+      elemento.addEventListener('input', calcularPrecioPersonalizadoTiempoReal);
+      elemento.addEventListener('change', calcularPrecioPersonalizadoTiempoReal);
+    }
+  });
 }
 
 // ============================================
-// � GENERAR PDF DE COTIZACIÓN
+//  GENERAR PDF DE COTIZACIÓN
 // ============================================
 
 function generarPDF() {
@@ -1510,7 +1598,7 @@ document.addEventListener('DOMContentLoaded', () => {
   configurarMenuMovil();
   inicializarEventListeners();
   inicializarPrecioTiempoReal(); // ← Agregado
-  const btnGenPDF = document.getElementById('generarPDF');
+  const btnGenPDF = document.getElementById('generarPDF'); // Botón grande
   if (btnGenPDF) btnGenPDF.addEventListener('click', imprimirCotizacion);
   console.log('✅ Script inicializado');
 });
