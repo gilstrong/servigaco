@@ -61,11 +61,11 @@ const TIEMPO_ENTREGA = {
 const IMAGEN_EJEMPLAR_TAPA = {
   beige: 'beige.png',
   morado: 'morado.png',
-  azul_marino: 'img/ejemplar-azul-marino.jpg',
+  azul_marino: 'azulmarino.jpg',
   azul_cielo: 'azulcielo.png',
-  rojo: 'img/ejemplar-rojo.jpg',
-  verde_botella: 'img/ejemplar-verde-botella.jpg',
-  amarillo_medicina: 'img/ejemplar-amarillo-medicina.jpg',
+  rojo: 'rojo.jpg',
+  verde_botella: 'verdebotella.jpg',
+  amarillo_medicina: 'amarillomedicina.jpg',
   blanco: 'blanca.png'
 };
 
@@ -982,8 +982,9 @@ if (document.readyState === 'loading') {
 // 💾 PERSISTENCIA (LOCALSTORAGE)
 // ============================================
 
-function guardarTesisLocalStorage() {
-  const datos = {
+// Obtener objeto con todos los datos actuales del formulario
+function obtenerDatosFormulario() {
+  return {
     tamano: document.getElementById('tamano')?.value,
     papel: document.getElementById('papel')?.value,
     bn: document.getElementById('bn')?.value,
@@ -996,35 +997,42 @@ function guardarTesisLocalStorage() {
     llevaCd: document.getElementById('llevaCd')?.value,
     cantidadCd: document.getElementById('cantidadCd')?.value
   };
+}
+
+// Guardar estado actual (auto-save)
+function guardarTesisLocalStorage() {
+  const datos = obtenerDatosFormulario();
   localStorage.setItem('cotizacion_tesis_datos', JSON.stringify(datos));
 }
 
+// Cargar estado actual (auto-load)
 function cargarTesisLocalStorage() {
   const guardado = localStorage.getItem('cotizacion_tesis_datos');
   if (guardado) {
     try {
       const datos = JSON.parse(guardado);
-      
-      // Restaurar valores si existen los elementos
-      if (datos.tamano) document.getElementById('tamano').value = datos.tamano;
-      if (datos.papel) document.getElementById('papel').value = datos.papel;
-      if (datos.bn) document.getElementById('bn').value = datos.bn;
-      if (datos.color) document.getElementById('color').value = datos.color;
-      if (datos.paginas) document.getElementById('paginas').value = datos.paginas;
-      if (datos.tomos) document.getElementById('tomos').value = datos.tomos;
-      if (datos.tipoEmpastado) document.getElementById('tipoEmpastado').value = datos.tipoEmpastado;
-      if (datos.colorTapa) document.getElementById('colorTapa').value = datos.colorTapa;
-      if (datos.lomo) document.getElementById('lomo').value = datos.lomo;
-      if (datos.llevaCd) document.getElementById('llevaCd').value = datos.llevaCd;
-      if (datos.cantidadCd) document.getElementById('cantidadCd').value = datos.cantidadCd;
-
-      // Actualizar visibilidad de secciones basada en los datos cargados
-      actualizarVista();
-      toggleSeccionCD();
+      aplicarDatosAlFormulario(datos);
     } catch (e) {
       console.error('Error cargando datos de tesis', e);
     }
   }
+}
+
+function aplicarDatosAlFormulario(datos) {
+  if (datos.tamano) document.getElementById('tamano').value = datos.tamano;
+  if (datos.papel) document.getElementById('papel').value = datos.papel;
+  if (datos.bn) document.getElementById('bn').value = datos.bn;
+  if (datos.color) document.getElementById('color').value = datos.color;
+  if (datos.paginas) document.getElementById('paginas').value = datos.paginas;
+  if (datos.tomos) document.getElementById('tomos').value = datos.tomos;
+  if (datos.tipoEmpastado) document.getElementById('tipoEmpastado').value = datos.tipoEmpastado;
+  if (datos.colorTapa) document.getElementById('colorTapa').value = datos.colorTapa;
+  if (datos.lomo) document.getElementById('lomo').value = datos.lomo;
+  if (datos.llevaCd) document.getElementById('llevaCd').value = datos.llevaCd;
+  if (datos.cantidadCd) document.getElementById('cantidadCd').value = datos.cantidadCd;
+
+  actualizarVista();
+  toggleSeccionCD();
 }
 
 // ============================================

@@ -2,14 +2,17 @@
 // 📝 COTIZACIÓN - GLOBAL
 // ============================================
 let cotizacion = [];
+let todasLasCotizaciones = []; // Para guardar múltiples cotizaciones
+let idCotizacionActiva = null; // Para saber si estamos editando una cotización existente
 
 console.log('🚀 Script cargando...');
 
 // 🔗 URL DE TU API DE GOOGLE SHEETS (Pégala aquí abajo)
 const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxRUMlkInT_O_C6G_q15jb8mVqVcX9SOLwu9Tl9_ucgwsu1C-ZfoIJIqrCcROo5WwSJbQ/exec';
 
-// Cargar datos guardados al iniciar
-document.addEventListener('DOMContentLoaded', cargarDeLocalStorage);
+document.addEventListener('DOMContentLoaded', () => {
+  cargarDeLocalStorage(); // Carga la cotización en curso si la página se recarga
+});
 
 // ============================================
 // 💰 TABLAS DE PRECIOS ACTUALIZADAS
@@ -99,7 +102,7 @@ const preciosEncuadernado = [
   { min: 201, max: 300, precio: 100 },
   { min: 301, max: 400, precio: 120 },
   { min: 401, max: 500, precio: 150 },
-  { min: 501, max: 1000, precio: 250 }
+  { min: 501, max: Infinity, precio: 250 }
 ];
 
 // Empastado (precio por unidad)
@@ -260,8 +263,14 @@ function limpiarCotizacion() {
     mostrarNotificacion('La cotización ya está vacía', 'warning');
     return;
   }
-  if (confirm('¿Limpiar toda la cotización?')) {
+  // Si se está editando, el "limpiar" crea una nueva cotización en blanco
+  const mensajeConfirmacion = idCotizacionActiva
+    ? '¿Salir de la edición y limpiar? Los cambios no guardados se perderán.'
+    : '¿Limpiar toda la cotización actual?';
+
+  if (confirm(mensajeConfirmacion)) {
     cotizacion = [];
+    idCotizacionActiva = null; // Desvincula de la cotización que se estaba editando
     actualizarCotizacion();
     mostrarNotificacion('Cotización limpiada', 'success');
   }
@@ -280,7 +289,16 @@ function actualizarCotizacion() {
   const cotizacionAcciones = document.getElementById('cotizacionAcciones');
 
   // Guardar en LocalStorage cada vez que cambia
-  guardarEnLocalStorage();
+  if (!idCotizacionActiva) {
+    guardarEnLocalStorage();
+  }
+
+  // Indicador de edición
+  const headerH2 = document.querySelector('.cotizacion-header h2');
+  const existingIndicator = headerH2?.querySelector('.editing-indicator');
+  if (existingIndicator) {
+    existingIndicator.remove();
+  }
 
   if (contador) contador.textContent = cotizacion.length;
 
@@ -302,6 +320,16 @@ function actualizarCotizacion() {
     if (comprobanteSection) comprobanteSection.style.display = 'none';
     if (cotizacionAcciones) cotizacionAcciones.style.display = 'none';
     return;
+  }
+
+  // Añadir indicador si se está editando
+  if (idCotizacionActiva && headerH2) {
+    const cotizacionGuardada = todasLasCotizaciones.find(c => c.id === idCotizacionActiva);
+    const nombre = cotizacionGuardada ? cotizacionGuardada.nombre : '...';
+    const indicator = document.createElement('span');
+    indicator.className = 'editing-indicator ml-4 text-sm font-normal bg-yellow-100 text-yellow-800 dark:bg-yellow-900/50 dark:text-yellow-300 px-3 py-1 rounded-full';
+    indicator.textContent = `📝 Editando: ${nombre}`;
+    headerH2.appendChild(indicator);
   }
 
   if (comprobanteSection) comprobanteSection.style.display = 'block';
@@ -443,12 +471,6 @@ function agregarLibro() {
     return;
   }
 
-  // Validar límite de encuadernado espiral
-  if (tipoTerminacion === 'espiral' && totalPaginas > 1000) {
-    mostrarNotificacion('Límite de espiral: 1000 páginas', 'error');
-    return;
-  }
-
   // ===============================================
   // CALCULAR COSTOS POR SEPARADO
   // ===============================================
@@ -459,18 +481,25 @@ function agregarLibro() {
   let costoTerminacion = 0;
 
   // 1. Calcular costo de impresión B/N
+  // NOTA: Calculamos en base al VOLUMEN TOTAL (páginas * juegos) para aplicar el precio correcto de mayoreo
   if (paginasBN > 0) {
-    costoBN = calcularPrecioImpresion(paginasBN, 'bn', tamano);
+    const totalPaginasBN = paginasBN * juegos;
+    const precioTotalBN = calcularPrecioImpresion(totalPaginasBN, 'bn', tamano);
+    costoBN = precioTotalBN / juegos; // Precio por libro individual
   }
 
   // 2. Calcular costo de impresión Color
   if (paginasColor > 0) {
-    costoColor = calcularPrecioImpresion(paginasColor, 'color', tamano);
+    const totalPaginasColor = paginasColor * juegos;
+    const precioTotalColor = calcularPrecioImpresion(totalPaginasColor, 'color', tamano);
+    costoColor = precioTotalColor / juegos;
   }
 
   // 3. Calcular costo de impresión Full Color
   if (paginasFullColor > 0) {
-    costoFullColor = calcularPrecioImpresion(paginasFullColor, 'full_color', tamano);
+    const totalPaginasFull = paginasFullColor * juegos;
+    const precioTotalFull = calcularPrecioImpresion(totalPaginasFull, 'full_color', tamano);
+    costoFullColor = precioTotalFull / juegos;
   }
 
   // 4. Calcular costo de terminación (si aplica)
@@ -949,6 +978,31 @@ function inicializarEventListeners() {
       elemento.addEventListener('change', actualizarResumenLibro);
     }
   });
+
+  // --- NUEVOS EVENT LISTENERS PARA GESTIÓN DE COTIZACIONES ---
+  const btnGuardar = document.getElementById('btnGuardarCotizacion');
+  if (btnGuardar) btnGuardar.addEventListener('click', guardarCotizacionActual);
+
+  const btnVer = document.getElementById('btnVerGuardadas');
+  if (btnVer) btnVer.addEventListener('click', abrirModalCotizaciones);
+
+  const btnCerrarModal = document.getElementById('btnCerrarModal');
+  if (btnCerrarModal) btnCerrarModal.addEventListener('click', cerrarModalCotizaciones);
+
+  // Cerrar modal con ESC
+  document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && !document.getElementById('modalCotizacionesGuardadas')?.classList.contains('hidden')) {
+          cerrarModalCotizaciones();
+      }
+  });
+
+  // Cerrar modal al hacer click fuera del contenido
+  const modal = document.getElementById('modalCotizacionesGuardadas');
+  if (modal) {
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) cerrarModalCotizaciones();
+    });
+  }
 }
 
 // ============================================
@@ -1334,6 +1388,13 @@ function imprimirCotizacion() {
   else if (tipoComp === 'gubernamental') { impuesto = subtotal * 0.10; nombreImpuesto = 'ISR (10%)'; }
   const total = subtotal + impuesto;
 
+  // Guardar reporte de venta en Google Sheets (igual que en la calculadora de tesis)
+  enviarAGoogleSheets({
+    tipo: 'General',
+    total: total.toFixed(2),
+    detalle: cotizacion.map(i => `• ${i.cantidad || 1}x ${i.nombre} - RD$${i.precio.toFixed(2)}`).join('\n')
+  });
+
   const resumenHTML = tipoComp !== 'ninguno' ? `
     <tr style="background-color: #f0f9ff;">
       <td colspan="4" style="text-align: right; font-weight: bold; color: #475569; padding: 12px 16px;">Subtotal:</td>
@@ -1503,6 +1564,205 @@ function cargarDeLocalStorage() {
 }
 
 // ============================================
+// ☁️ GESTIÓN CON GOOGLE SHEETS (NUEVO)
+// ============================================
+
+// Función genérica para comunicarse con el Script de Google
+async function peticionGoogleSheets(accion, datos = {}) {
+  // Construimos los parámetros
+  const payload = { action: accion, ...datos };
+  console.log(`📡 [Google Sheets] Enviando petición '${accion}'...`);
+
+  // Opciones para el fetch
+  const opciones = {
+    method: 'POST', // Usamos POST para todo para enviar datos complejos (JSON)
+    mode: 'no-cors', // Importante para evitar bloqueos simples si el script no devuelve headers CORS perfectos
+    headers: {
+      'Content-Type': 'text/plain;charset=utf-8',
+    },
+    body: JSON.stringify(payload)
+  };
+
+  // Nota: Con 'no-cors' no podemos leer la respuesta JSON directamente en el cliente
+  // de forma estándar si el servidor no está configurado perfectamente.
+  // Sin embargo, para GUARDAR (fire and forget) funciona bien.
+  // Para LEER (GET), Google Apps Script debe publicar el script web con permisos de "Cualquiera".
+  
+  if (accion === 'listar') {
+    // Para listar usamos GET real para poder leer la respuesta
+    try {
+      const response = await fetch(`${GOOGLE_SCRIPT_URL}?action=listar`);
+      if (!response.ok) throw new Error(`Error HTTP: ${response.status}`);
+      const json = await response.json();
+      return json;
+    } catch (e) {
+      console.error("❌ Error obteniendo lista:", e);
+      throw e; // Re-lanzamos el error para que lo capture abrirModalCotizaciones
+    }
+  } else {
+    // Para guardar/borrar usamos POST
+    try {
+      await fetch(GOOGLE_SCRIPT_URL, opciones);
+      console.log("✅ [Google Sheets] Petición enviada correctamente (modo no-cors)");
+      return { success: true }; 
+    } catch (error) {
+      console.error("❌ [Google Sheets] Error de red al enviar:", error);
+      throw error;
+    }
+  }
+}
+
+async function guardarCotizacionActual() {
+  console.log("💾 Botón Guardar presionado. Iniciando proceso...");
+  if (cotizacion.length === 0) {
+    mostrarNotificacion('No hay nada que guardar en la cotización', 'warning');
+    console.warn("⚠️ Intento de guardar cotización vacía.");
+    return;
+  }
+
+  const cotizacionGuardadaPrevia = idCotizacionActiva ? todasLasCotizaciones.find(c => c.id === idCotizacionActiva) : null;
+  const nombrePrevio = cotizacionGuardadaPrevia ? cotizacionGuardadaPrevia.nombre : '';
+
+  const nombreCliente = prompt('Introduce un nombre o referencia para esta cotización (ej: "Cliente Juan" o "Tesis UCE"):', nombrePrevio);
+
+  if (nombreCliente === null) { // El usuario presionó "Cancelar"
+    console.log("ℹ️ Guardado cancelado por el usuario.");
+    return;
+  }
+
+  if (!nombreCliente.trim()) {
+    mostrarNotificacion('El nombre es obligatorio para guardar la cotización', 'error');
+    return;
+  }
+
+  const nuevaData = {
+    id: idCotizacionActiva || `cot-${Date.now()}`,
+    nombre: nombreCliente,
+    fecha: new Date().toISOString(),
+    items: cotizacion,
+    total: cotizacion.reduce((sum, item) => sum + item.precio, 0),
+    tipo: 'General' // 🏷️ ETIQUETA ÚNICA para filtrar después
+  };
+
+  mostrarNotificacion('Guardando en la nube...', 'info');
+  console.log("📦 Datos preparados para enviar:", nuevaData);
+
+  try {
+    await peticionGoogleSheets('guardar', nuevaData);
+    
+    // Actualización optimista local
+  if (idCotizacionActiva) {
+    const index = todasLasCotizaciones.findIndex(c => c.id === idCotizacionActiva);
+    if (index !== -1) todasLasCotizaciones[index] = nuevaData;
+  } else {
+    todasLasCotizaciones.unshift(nuevaData);
+    idCotizacionActiva = nuevaData.id;
+  }
+
+    mostrarNotificacion('¡Guardado exitoso en Google Sheets!', 'success');
+  actualizarCotizacion(); // Para reflejar el estado "Editando: ..."
+
+  } catch (error) {
+    console.error("❌ Error CRÍTICO al guardar:", error);
+    mostrarNotificacion('Error al guardar en la nube. Intente de nuevo.', 'error');
+  }
+}
+
+function cargarCotizacionGuardada(id) {
+  const cotizacionGuardada = todasLasCotizaciones.find(c => c.id === id);
+  if (cotizacionGuardada) {
+    idCotizacionActiva = id;
+    cotizacion = JSON.parse(JSON.stringify(cotizacionGuardada.items)); // Copia profunda
+    actualizarCotizacion();
+    cerrarModalCotizaciones();
+    mostrarNotificacion(`Cotización "${cotizacionGuardada.nombre}" cargada para edición`, 'success');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  } else {
+    mostrarNotificacion('Error: No se pudo encontrar la cotización seleccionada', 'error');
+  }
+}
+
+async function eliminarCotizacionGuardada(id) {
+  const index = todasLasCotizaciones.findIndex(c => c.id === id);
+  if (index !== -1) {
+    const nombre = todasLasCotizaciones[index].nombre;
+    if (confirm(`¿Estás seguro de que quieres eliminar permanentemente la cotización "${nombre}"?`)) {
+      
+      mostrarNotificacion('Eliminando...', 'info');
+      await peticionGoogleSheets('borrar', { id: id });
+      
+      todasLasCotizaciones.splice(index, 1);
+      renderizarCotizacionesGuardadas(); // Actualiza la vista del modal
+      mostrarNotificacion('Cotización eliminada de la nube', 'success');
+
+      // Si la cotización eliminada era la que se estaba editando, limpiar el editor
+      if (idCotizacionActiva === id) {
+        limpiarCotizacion();
+      }
+    }
+  }
+}
+
+function renderizarCotizacionesGuardadas() {
+  const container = document.getElementById('listaCotizacionesGuardadas');
+  if (!container) return;
+
+  if (!todasLasCotizaciones) {
+    container.innerHTML = `<p class="text-center text-gray-500 py-8">Cargando...</p>`;
+    return;
+  }
+
+  if (todasLasCotizaciones.length === 0) {
+    container.innerHTML = `<p class="text-center text-gray-500 dark:text-gray-400 py-8">No hay cotizaciones guardadas.</p>`;
+    return;
+  }
+
+  container.innerHTML = todasLasCotizaciones.map(c => {
+    const fecha = new Date(c.fecha).toLocaleDateString('es-DO', { year: 'numeric', month: 'long', day: 'numeric' });
+    const total = c.total.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    return `
+      <div class="p-4 mb-3 bg-gray-50 dark:bg-gray-900/50 rounded-xl border border-gray-200 dark:border-gray-700 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 hover:bg-blue-50 dark:hover:bg-gray-700/60 transition-colors">
+        <div class="flex-grow">
+          <p class="font-bold text-lg text-blue-700 dark:text-blue-400">${c.nombre}</p>
+          <p class="text-sm text-gray-500 dark:text-gray-400">Guardada el ${fecha} - ${c.items.length} servicio(s)</p>
+          <p class="text-md font-semibold text-gray-800 dark:text-gray-200 mt-1">Total: RD$${total}</p>
+        </div>
+        <div class="flex-shrink-0 flex gap-2 w-full md:w-auto">
+          <button onclick="cargarCotizacionGuardada('${c.id}')" class="flex-1 md:flex-none w-full py-2 px-4 rounded-lg font-semibold text-white bg-blue-600 hover:bg-blue-700 transition-all shadow-sm">📝 Editar</button>
+          <button onclick="eliminarCotizacionGuardada('${c.id}')" class="flex-1 md:flex-none w-full py-2 px-4 rounded-lg font-semibold text-white bg-red-600 hover:bg-red-700 transition-all shadow-sm">🗑️ Borrar</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+async function abrirModalCotizaciones() {
+  const container = document.getElementById('listaCotizacionesGuardadas');
+  if (container) container.innerHTML = '<div class="text-center py-10"><p class="text-xl animate-pulse">☁️ Cargando desde Google Sheets...</p></div>';
+  
+  document.getElementById('modalCotizacionesGuardadas')?.classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+
+  try {
+    // Cargar datos frescos de la nube
+    const respuesta = await peticionGoogleSheets('listar');
+    if (Array.isArray(respuesta)) {
+      // 🔍 FILTRO: Solo mostramos las que sean de tipo 'General'
+      todasLasCotizaciones = respuesta.filter(c => c.tipo === 'General');
+    }
+    renderizarCotizacionesGuardadas();
+  } catch (error) {
+    console.error(error);
+    if (container) container.innerHTML = '<p class="text-center text-red-500 py-8">Error al cargar las cotizaciones. Verifique su conexión.</p>';
+  }
+}
+
+function cerrarModalCotizaciones() {
+  document.getElementById('modalCotizacionesGuardadas')?.classList.add('hidden');
+  document.body.style.overflow = 'auto';
+}
+
+// ============================================
 // 💬 WHATSAPP
 // ============================================
 
@@ -1572,7 +1832,7 @@ function mostrarNotificacion(mensaje, tipo = 'success') {
 // ============================================
 
 function enviarAGoogleSheets(datos) {
-  if (GOOGLE_SCRIPT_URL === 'https://script.google.com/macros/library/d/1x_TcUnJMSh5hCHk3h6pU6xLuX7s8YnW0tABFjx9TuA8ObyDXHQtVlMwk/2' || !GOOGLE_SCRIPT_URL) {
+  if (!GOOGLE_SCRIPT_URL || GOOGLE_SCRIPT_URL.includes('macros/library')) {
     console.warn('⚠️ Falta configurar la URL de Google Sheets en el script.');
     return;
   }
@@ -1593,7 +1853,6 @@ function enviarAGoogleSheets(datos) {
 // ============================================
 
 document.addEventListener('DOMContentLoaded', () => {
-  actualizarCotizacion();
   marcarPaginaActiva();
   configurarMenuMovil();
   inicializarEventListeners();
