@@ -826,14 +826,11 @@ function generarCotizacion() {
 
   txt += `\nTOTAL: RD$${(subtotal + imp).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}`;
   
-  // Preparamos los textos para asegurar compatibilidad con las columnas de Sheets
-  const descripcionTexto = cotizacion.map(i => `${i.cantidad}x ${i.nombre} ${i.descripcion ? '(' + i.descripcion + ')' : ''}`).join('\n');
-
   // Guardar en Google Sheets
   enviarAGoogleSheets({
     tipo: 'General',
     total: (subtotal + imp).toFixed(2),
-    detalle: descripcionTexto
+    detalle: cotizacion.map(i => `• ${i.cantidad}x ${i.nombre} - RD$${i.precio.toFixed(2)}`).join('\n')
   });
 
   // En lugar de alert, copiamos al portapapeles o usamos la notificación
@@ -1595,15 +1592,13 @@ async function peticionGoogleSheets(accion, datos = {}) {
   // Para LEER (GET), Google Apps Script debe publicar el script web con permisos de "Cualquiera".
   
   if (accion === 'listar') {
-    // Para listar usamos GET real para poder leer la respuesta
+    // 🔥 CAMBIO: Usamos JSONP para listar y evitar bloqueos CORS
     try {
-      const response = await fetch(`${GOOGLE_SCRIPT_URL}?action=listar`);
-      if (!response.ok) throw new Error(`Error HTTP: ${response.status}`);
-      const json = await response.json();
+      const json = await realizarPeticionJSONP(GOOGLE_SCRIPT_URL, { action: 'listar' });
       return json;
     } catch (e) {
-      console.error("❌ Error obteniendo lista:", e);
-      throw e; // Re-lanzamos el error para que lo capture abrirModalCotizaciones
+      console.error("❌ Error obteniendo lista (JSONP):", e);
+      throw e;
     }
   } else {
     // Para guardar/borrar usamos POST
@@ -1617,6 +1612,8 @@ async function peticionGoogleSheets(accion, datos = {}) {
     }
   }
 }
+
+
 
 async function guardarCotizacionActual() {
   console.log("💾 Botón Guardar presionado. Iniciando proceso...");
@@ -1679,6 +1676,12 @@ async function guardarCotizacionActual() {
     mostrarNotificacion('Error al guardar en la nube. Intente de nuevo.', 'error');
   }
 }
+
+async function peticionGoogleSheets() {
+  const res = await fetch('/.netlify/functions/cotizaciones?action=listar');
+  return await res.json();
+}
+
 
 function cargarCotizacionGuardada(id) {
   const cotizacionGuardada = todasLasCotizaciones.find(c => c.id === id);
@@ -1876,3 +1879,35 @@ document.addEventListener('DOMContentLoaded', () => {
   if (btnGenPDF) btnGenPDF.addEventListener('click', imprimirCotizacion);
   console.log('✅ Script inicializado');
 });
+
+// ============================================
+// 🔧 UTILIDAD JSONP (Para evitar CORS)
+// ============================================
+function realizarPeticionJSONP(url, params) {
+  return new Promise((resolve, reject) => {
+    // Crear un nombre único para la función de callback
+    const callbackName = 'jsonp_cb_' + Math.round(100000 * Math.random());
+    const script = document.createElement('script');
+    
+    // Construir la URL con los parámetros y el callback
+    const queryParams = new URLSearchParams({ ...params, callback: callbackName }).toString();
+    script.src = `${url}?${queryParams}`;
+    
+    // Definir la función global que recibirá los datos
+    window[callbackName] = (data) => {
+      delete window[callbackName]; // Limpieza
+      document.body.removeChild(script); // Limpieza
+      resolve(data);
+    };
+    
+    // Manejo de errores de carga
+    script.onerror = () => {
+      delete window[callbackName];
+      document.body.removeChild(script);
+      reject(new Error('Error al realizar petición JSONP (posible bloqueo o URL incorrecta)'));
+    };
+    
+    // Inyectar el script para iniciar la petición
+    document.body.appendChild(script);
+  });
+}

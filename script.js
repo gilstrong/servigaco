@@ -4,7 +4,7 @@
 
 
 // 🔗 URL DE TU API DE GOOGLE SHEETS (Pégala aquí abajo)
-const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxRUMlkInT_O_C6G_q15jb8mVqVcX9SOLwu9Tl9_ucgwsu1C-ZfoIJIqrCcROo5WwSJbQ/exec';
+const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxHk5dI_qZeec9tlrl8mo4ubRre0mNrLrST-4Z-7pyqOhcnbupE201lJhORig4TAgrWbw/exec';
 const PRECIOS = {
   carta: {
     bond: { bn: 6, color: 12 },
@@ -408,6 +408,24 @@ datosGlobales = {
   idCotizacion,
   colorTapa
 };
+
+    ultimaCotizacion = generarHTMLCotizacion({
+      idCotizacion,
+      fecha,
+      tomos,
+      impresion,
+      detalleImpresion,
+      empastado,
+      tipoEmp,
+      colorTapa,
+      costoUnitario,
+      lomoVal,
+      cdVal,
+      lomo,
+      cd,
+      cantidadCd,
+      totalRedondeado
+    });
 
     const descripcionTesis = `Tesis: ${tomos} tomos, ${nombreColor(elementos.tamano.value)}, ${nombreColor(elementos.papel.value)}, ${nombreColor(elementos.tipoEmpastado.value)}`;
 
@@ -1060,7 +1078,7 @@ function mostrarNotificacion(mensaje, tipo = 'success') {
 // ============================================
 
 function enviarAGoogleSheets(datos) {
-  if (GOOGLE_SCRIPT_URL === 'TU_URL_DE_GOOGLE_APPS_SCRIPT_AQUI' || !GOOGLE_SCRIPT_URL) {
+  if (GOOGLE_SCRIPT_URL === 'https://script.google.com/macros/s/AKfycbxHk5dI_qZeec9tlrl8mo4ubRre0mNrLrST-4Z-7pyqOhcnbupE201lJhORig4TAgrWbw/exec_AQUI' || !GOOGLE_SCRIPT_URL) {
     console.warn('⚠️ Falta configurar la URL de Google Sheets en el script.');
     return;
   }
