@@ -826,11 +826,14 @@ function generarCotizacion() {
 
   txt += `\nTOTAL: RD$${(subtotal + imp).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}`;
   
+  // Preparamos los textos para asegurar compatibilidad con las columnas de Sheets
+  const descripcionTexto = cotizacion.map(i => `${i.cantidad}x ${i.nombre} ${i.descripcion ? '(' + i.descripcion + ')' : ''}`).join('\n');
+
   // Guardar en Google Sheets
   enviarAGoogleSheets({
     tipo: 'General',
     total: (subtotal + imp).toFixed(2),
-    detalle: cotizacion.map(i => `• ${i.cantidad}x ${i.nombre} - RD$${i.precio.toFixed(2)}`).join('\n')
+    detalle: descripcionTexto
   });
 
   // En lugar de alert, copiamos al portapapeles o usamos la notificación
@@ -1388,11 +1391,14 @@ function imprimirCotizacion() {
   else if (tipoComp === 'gubernamental') { impuesto = subtotal * 0.10; nombreImpuesto = 'ISR (10%)'; }
   const total = subtotal + impuesto;
 
+  // Preparamos los textos para asegurar compatibilidad
+  const descripcionTexto = cotizacion.map(i => `${i.cantidad || 1}x ${i.nombre} ${i.descripcion ? '(' + i.descripcion + ')' : ''}`).join('\n');
+
   // Guardar reporte de venta en Google Sheets (igual que en la calculadora de tesis)
   enviarAGoogleSheets({
     tipo: 'General',
     total: total.toFixed(2),
-    detalle: cotizacion.map(i => `• ${i.cantidad || 1}x ${i.nombre} - RD$${i.precio.toFixed(2)}`).join('\n')
+    detalle: descripcionTexto
   });
 
   const resumenHTML = tipoComp !== 'ninguno' ? `
@@ -1578,7 +1584,7 @@ async function peticionGoogleSheets(accion, datos = {}) {
     method: 'POST', // Usamos POST para todo para enviar datos complejos (JSON)
     mode: 'no-cors', // Importante para evitar bloqueos simples si el script no devuelve headers CORS perfectos
     headers: {
-      'Content-Type': 'text/plain;charset=utf-8',
+      'Content-Type': 'text/plain',
     },
     body: JSON.stringify(payload)
   };
@@ -1635,13 +1641,19 @@ async function guardarCotizacionActual() {
     return;
   }
 
+  // Preparamos los textos para asegurar compatibilidad con las columnas de Sheets
+  const descripcionTexto = cotizacion.map(i => `${i.cantidad}x ${i.nombre} ${i.descripcion ? '(' + i.descripcion + ')' : ''}`).join('\n');
+  const servicioTexto = cotizacion.map(i => `${i.cantidad}x ${i.nombre}`).join(', ');
+  const totalTexto = cotizacion.reduce((sum, item) => sum + item.precio, 0).toFixed(2);
+
   const nuevaData = {
     id: idCotizacionActiva || `cot-${Date.now()}`,
     nombre: nombreCliente,
-    fecha: new Date().toISOString(),
+    fecha: new Date().toLocaleString('es-DO'),
     items: cotizacion,
-    total: cotizacion.reduce((sum, item) => sum + item.precio, 0),
-    tipo: 'General' // 🏷️ ETIQUETA ÚNICA para filtrar después
+    total: totalTexto,
+    tipo: 'General',
+    detalle: descripcionTexto
   };
 
   mostrarNotificacion('Guardando en la nube...', 'info');
@@ -1719,7 +1731,7 @@ function renderizarCotizacionesGuardadas() {
 
   container.innerHTML = todasLasCotizaciones.map(c => {
     const fecha = new Date(c.fecha).toLocaleDateString('es-DO', { year: 'numeric', month: 'long', day: 'numeric' });
-    const total = c.total.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    const total = Number(c.total || 0).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
     return `
       <div class="p-4 mb-3 bg-gray-50 dark:bg-gray-900/50 rounded-xl border border-gray-200 dark:border-gray-700 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 hover:bg-blue-50 dark:hover:bg-gray-700/60 transition-colors">
         <div class="flex-grow">
@@ -1837,13 +1849,16 @@ function enviarAGoogleSheets(datos) {
     return;
   }
 
+  // Aseguramos que la acción sea 'guardar'
+  const payload = { action: 'guardar', ...datos };
+
   fetch(GOOGLE_SCRIPT_URL, {
     method: 'POST',
     mode: 'no-cors', // Necesario para enviar datos a Google Apps Script sin errores de CORS
     headers: {
       'Content-Type': 'text/plain'
     },
-    body: JSON.stringify(datos)
+    body: JSON.stringify(payload)
   }).then(() => console.log('✅ Pedido guardado en Sheets'))
     .catch(err => console.error('❌ Error guardando en Sheets:', err));
 }

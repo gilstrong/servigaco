@@ -409,30 +409,17 @@ datosGlobales = {
   colorTapa
 };
 
+    const descripcionTesis = `Tesis: ${tomos} tomos, ${nombreColor(elementos.tamano.value)}, ${nombreColor(elementos.papel.value)}, ${nombreColor(elementos.tipoEmpastado.value)}`;
+
 // Preparar datos para Google Sheets
 datosParaGuardar = {
   tipo: 'Tesis',
   total: totalRedondeado.toFixed(2),
-  detalle: `📚 ${tomos} tomos - RD$${totalRedondeado.toFixed(2)}\n📄 ${nombreColor(elementos.tamano.value)} / ${nombreColor(elementos.papel.value)}\n📕 ${nombreColor(elementos.tipoEmpastado.value)}`
+  detalle: `📚 ${tomos} tomos - RD$${totalRedondeado.toFixed(2)}\n📄 ${nombreColor(elementos.tamano.value)} / ${nombreColor(elementos.papel.value)}\n📕 ${nombreColor(elementos.tipoEmpastado.value)}`,
+  descripcion: descripcionTesis,
+  fecha: fecha,
+  id: idCotizacion
 };
-
-ultimaCotizacion = generarHTMLCotizacion({
-  tomos,
-  impresion,
-  detalleImpresion,
-  empastado,
-  tipoEmp,
-  colorTapa,
-  costoUnitario,
-  lomoVal,
-  lomo,
-  cdVal,
-  cd,
-  cantidadCd,
-  totalRedondeado,
-  idCotizacion,
-  fecha
-});
 
 
     
@@ -1078,13 +1065,16 @@ function enviarAGoogleSheets(datos) {
     return;
   }
 
+  // Aseguramos que la acción sea 'guardar'
+  const payload = { action: 'guardar', ...datos };
+
   fetch(GOOGLE_SCRIPT_URL, {
     method: 'POST',
     mode: 'no-cors',
     headers: {
       'Content-Type': 'text/plain'
     },
-    body: JSON.stringify(datos)
+    body: JSON.stringify(payload)
   }).then(() => console.log('✅ Pedido guardado en Sheets'))
     .catch(err => console.error('❌ Error guardando en Sheets:', err));
 }
