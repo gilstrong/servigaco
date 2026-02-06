@@ -1570,51 +1570,6 @@ function cargarDeLocalStorage() {
 // ☁️ GESTIÓN CON GOOGLE SHEETS (NUEVO)
 // ============================================
 
-// Función genérica para comunicarse con el Script de Google
-async function peticionGoogleSheets(accion, datos = {}) {
-  // Construimos los parámetros
-  const payload = { action: accion, ...datos };
-  console.log(`📡 [Google Sheets] Enviando petición '${accion}'...`);
-
-  // Opciones para el fetch
-  const opciones = {
-    method: 'POST', // Usamos POST para todo para enviar datos complejos (JSON)
-    mode: 'no-cors', // Importante para evitar bloqueos simples si el script no devuelve headers CORS perfectos
-    headers: {
-      'Content-Type': 'text/plain',
-    },
-    body: JSON.stringify(payload)
-  };
-
-  // Nota: Con 'no-cors' no podemos leer la respuesta JSON directamente en el cliente
-  // de forma estándar si el servidor no está configurado perfectamente.
-  // Sin embargo, para GUARDAR (fire and forget) funciona bien.
-  // Para LEER (GET), Google Apps Script debe publicar el script web con permisos de "Cualquiera".
-  
-  if (accion === 'listar') {
-    // 🔥 CAMBIO: Usamos JSONP para listar y evitar bloqueos CORS
-    try {
-      const json = await realizarPeticionJSONP(GOOGLE_SCRIPT_URL, { action: 'listar' });
-      return json;
-    } catch (e) {
-      console.error("❌ Error obteniendo lista (JSONP):", e);
-      throw e;
-    }
-  } else {
-    // Para guardar/borrar usamos POST
-    try {
-      await fetch(GOOGLE_SCRIPT_URL, opciones);
-      console.log("✅ [Google Sheets] Petición enviada correctamente (modo no-cors)");
-      return { success: true }; 
-    } catch (error) {
-      console.error("❌ [Google Sheets] Error de red al enviar:", error);
-      throw error;
-    }
-  }
-}
-
-
-
 async function guardarCotizacionActual() {
   console.log("💾 Botón Guardar presionado. Iniciando proceso...");
   if (cotizacion.length === 0) {
@@ -1657,7 +1612,7 @@ async function guardarCotizacionActual() {
   console.log("📦 Datos preparados para enviar:", nuevaData);
 
   try {
-    await peticionGoogleSheets('guardar', nuevaData);
+    enviarAGoogleSheets(nuevaData);
     
     // Actualización optimista local
   if (idCotizacionActiva) {
@@ -1675,11 +1630,6 @@ async function guardarCotizacionActual() {
     console.error("❌ Error CRÍTICO al guardar:", error);
     mostrarNotificacion('Error al guardar en la nube. Intente de nuevo.', 'error');
   }
-}
-
-async function peticionGoogleSheets() {
-  const res = await fetch('/.netlify/functions/cotizaciones?action=listar');
-  return await res.json();
 }
 
 
@@ -1704,7 +1654,7 @@ async function eliminarCotizacionGuardada(id) {
     if (confirm(`¿Estás seguro de que quieres eliminar permanentemente la cotización "${nombre}"?`)) {
       
       mostrarNotificacion('Eliminando...', 'info');
-      await peticionGoogleSheets('borrar', { id: id });
+      enviarAGoogleSheets({ id: id }, 'borrar');
       
       todasLasCotizaciones.splice(index, 1);
       renderizarCotizacionesGuardadas(); // Actualiza la vista del modal
@@ -1760,7 +1710,8 @@ async function abrirModalCotizaciones() {
 
   try {
     // Cargar datos frescos de la nube
-    const respuesta = await peticionGoogleSheets('listar');
+    // const respuesta = await peticionGoogleSheets('listar');
+    const respuesta = []; // Deshabilitado temporalmente para evitar errores de CORS
     if (Array.isArray(respuesta)) {
       // 🔍 FILTRO: Solo mostramos las que sean de tipo 'General'
       todasLasCotizaciones = respuesta.filter(c => c.tipo === 'General');
@@ -1846,24 +1797,21 @@ function mostrarNotificacion(mensaje, tipo = 'success') {
 // ☁️ GOOGLE SHEETS API
 // ============================================
 
-function enviarAGoogleSheets(datos) {
-  if (!GOOGLE_SCRIPT_URL || GOOGLE_SCRIPT_URL.includes('macros/library')) {
-    console.warn('⚠️ Falta configurar la URL de Google Sheets en el script.');
-    return;
-  }
+function enviarAGoogleSheets(datos, accion = 'guardar') {
+  // Preparamos el payload con la acción
+  const payload = { action: accion, ...datos };
 
-  // Aseguramos que la acción sea 'guardar'
-  const payload = { action: 'guardar', ...datos };
-
+  // Envío directo
   fetch(GOOGLE_SCRIPT_URL, {
     method: 'POST',
-    mode: 'no-cors', // Necesario para enviar datos a Google Apps Script sin errores de CORS
+    mode: 'no-cors',
     headers: {
-      'Content-Type': 'text/plain'
+      'Content-Type': 'application/json'
     },
     body: JSON.stringify(payload)
-  }).then(() => console.log('✅ Pedido guardado en Sheets'))
-    .catch(err => console.error('❌ Error guardando en Sheets:', err));
+  })
+    .then(() => console.log(`✅ Acción '${accion}' enviada a Sheets (sin confirmación)`))
+    .catch(err => console.error(`❌ Error enviando '${accion}' a Sheets:`, err));
 }
 
 // ============================================
@@ -1879,35 +1827,3 @@ document.addEventListener('DOMContentLoaded', () => {
   if (btnGenPDF) btnGenPDF.addEventListener('click', imprimirCotizacion);
   console.log('✅ Script inicializado');
 });
-
-// ============================================
-// 🔧 UTILIDAD JSONP (Para evitar CORS)
-// ============================================
-function realizarPeticionJSONP(url, params) {
-  return new Promise((resolve, reject) => {
-    // Crear un nombre único para la función de callback
-    const callbackName = 'jsonp_cb_' + Math.round(100000 * Math.random());
-    const script = document.createElement('script');
-    
-    // Construir la URL con los parámetros y el callback
-    const queryParams = new URLSearchParams({ ...params, callback: callbackName }).toString();
-    script.src = `${url}?${queryParams}`;
-    
-    // Definir la función global que recibirá los datos
-    window[callbackName] = (data) => {
-      delete window[callbackName]; // Limpieza
-      document.body.removeChild(script); // Limpieza
-      resolve(data);
-    };
-    
-    // Manejo de errores de carga
-    script.onerror = () => {
-      delete window[callbackName];
-      document.body.removeChild(script);
-      reject(new Error('Error al realizar petición JSONP (posible bloqueo o URL incorrecta)'));
-    };
-    
-    // Inyectar el script para iniciar la petición
-    document.body.appendChild(script);
-  });
-}

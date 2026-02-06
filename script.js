@@ -4,7 +4,7 @@
 
 
 // 🔗 URL DE TU API DE GOOGLE SHEETS (Pégala aquí abajo)
-const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxHk5dI_qZeec9tlrl8mo4ubRre0mNrLrST-4Z-7pyqOhcnbupE201lJhORig4TAgrWbw/exec';
+const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxRUMlkInT_O_C6G_q15jb8mVqVcX9SOLwu9Tl9_ucgwsu1C-ZfoIJIqrCcROo5WwSJbQ/exec';
 const PRECIOS = {
   carta: {
     bond: { bn: 6, color: 12 },
@@ -1090,9 +1090,10 @@ function enviarAGoogleSheets(datos) {
     method: 'POST',
     mode: 'no-cors',
     headers: {
-      'Content-Type': 'text/plain'
+      'Content-Type': 'application/json'
     },
     body: JSON.stringify(payload)
-  }).then(() => console.log('✅ Pedido guardado en Sheets'))
-    .catch(err => console.error('❌ Error guardando en Sheets:', err));
+  })
+  .then(() => console.log('✅ Enviado a Google Sheets'))
+  .catch(err => console.error('❌ Error:', err));
 }
