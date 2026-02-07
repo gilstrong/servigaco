@@ -3,8 +3,23 @@
 // ============================================
 
 
-// 🔗 URL DE TU API DE GOOGLE SHEETS (Pégala aquí abajo)
-const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxRUMlkInT_O_C6G_q15jb8mVqVcX9SOLwu9Tl9_ucgwsu1C-ZfoIJIqrCcROo5WwSJbQ/exec';
+// ============================================
+// 🔥 CONFIGURACIÓN DE FIREBASE (BASE DE DATOS)
+// ============================================
+const firebaseConfig = {
+  apiKey: "AIzaSyBgVrMPSwZg3O5zbuIozstpG0bM8XFEeZE",
+  authDomain: "servigaco.firebaseapp.com",
+  databaseURL: "https://servigaco-default-rtdb.firebaseio.com",
+  projectId: "servigaco",
+  storageBucket: "servigaco.firebasestorage.app",
+  messagingSenderId: "516579834487",
+  appId: "1:516579834487:web:e7fb1c46d93bb62a98a472"
+};
+
+// Inicializar Firebase
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
 const PRECIOS = {
   carta: {
     bond: { bn: 6, color: 12 },
@@ -179,6 +194,7 @@ const elementos = {
   // Botones
   btnCalcular: document.getElementById('btnCalcular'),
   btnGenerar: document.getElementById('btnGenerar'),
+  btnGuardarTesis: document.getElementById('btnGuardarTesis'),
   btnCompartir: document.getElementById('btnCompartir'),
   btnReiniciar: document.getElementById('btnReiniciar'),
   btnMostrarTabla: document.getElementById('btnMostrarTabla'),
@@ -190,6 +206,7 @@ const elementos = {
 let ultimaCotizacion = '';
 let datosGlobales = {};
 let datosParaGuardar = null; // Variable temporal para guardar en Sheets
+let todasLasCotizaciones = []; // Para almacenar las tesis recuperadas
 
 
 // ============================================
@@ -647,7 +664,7 @@ function generarTiempoEntrega(tipoEmp) {
     
   return `
     <div class="tiempo-entrega">
-      ⏰ Tiempo de entrega: en tapa dura ${tiempo}, si es apartir de las 12:00 PM se entrega al otro dia / ${TIEMPO_ENTREGA.VINIL} vinil.
+      ⏰ Tiempo de entrega: en tapa dura ${tiempo}, si es a partir de las 12:00 PM se entrega al otro día / ${TIEMPO_ENTREGA.VINIL} vinil.
     </div>
   `;
 }
@@ -664,8 +681,8 @@ function imprimir() {
     return mostrarNotificacion('Calcule primero la cotización', 'warning');
   }
 
-  // Guardar en Google Sheets al imprimir
-  if (datosParaGuardar) enviarAGoogleSheets(datosParaGuardar);
+  // Guardar en Firebase al imprimir
+  if (datosParaGuardar) guardarEnFirebase(datosParaGuardar);
 
   const ventana = window.open('', '', 'width=1000,height=700');
   const headHTML = document.head.innerHTML;
@@ -848,8 +865,8 @@ async function descargarPDF() {
     return;
   }
 
-  // Guardar en Google Sheets al descargar
-  if (datosParaGuardar) enviarAGoogleSheets(datosParaGuardar);
+  // Guardar en Firebase al descargar
+  if (datosParaGuardar) guardarEnFirebase(datosParaGuardar);
 
   const wrapper = document.createElement("div");
   wrapper.style.width = "210mm";
@@ -933,6 +950,114 @@ function reiniciar() {
 }
 
 // ============================================
+// 📂 GESTIÓN DE TESIS GUARDADAS (FIREBASE)
+// ============================================
+
+async function abrirModalCotizaciones() {
+  const container = document.getElementById('listaCotizacionesGuardadas');
+  const modal = document.getElementById('modalCotizacionesGuardadas');
+  
+  if (container) container.innerHTML = '<div class="text-center py-10"><p class="text-xl animate-pulse">🔥 Cargando desde Base de Datos...</p></div>';
+  if (modal) modal.classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+
+  try {
+    // Cargar datos de Firebase (Solo tipo Tesis)
+    const snapshot = await db.ref("cotizaciones")
+      .orderByChild("tipo")
+      .equalTo("Tesis")
+      .once("value");
+
+    const data = snapshot.val();
+    
+    // Convertir objeto a array y ordenar por fecha (descendente)
+    todasLasCotizaciones = data ? Object.keys(data).map(key => ({
+      id: key,
+      ...data[key]
+    })).sort((a, b) => {
+      return new Date(b.fechaISO) - new Date(a.fechaISO);
+    }) : [];
+
+    renderizarCotizacionesGuardadas();
+  } catch (error) {
+    console.error("Error cargando tesis:", error);
+    // Fallback si falta índice compuesto
+    if (container) container.innerHTML = '<p class="text-center text-red-500 py-8">Error al cargar las tesis.</p>';
+  }
+}
+
+function cerrarModalCotizaciones() {
+  document.getElementById('modalCotizacionesGuardadas')?.classList.add('hidden');
+  document.body.style.overflow = 'auto';
+}
+
+function renderizarCotizacionesGuardadas() {
+  const container = document.getElementById('listaCotizacionesGuardadas');
+  if (!container) return;
+
+  if (todasLasCotizaciones.length === 0) {
+    container.innerHTML = `<p class="text-center text-gray-500 dark:text-gray-400 py-8">No hay tesis guardadas.</p>`;
+    return;
+  }
+
+  container.innerHTML = todasLasCotizaciones.map(c => {
+    let fechaObj = new Date();
+    if (c.timestamp && c.timestamp.toDate) {
+      fechaObj = c.timestamp.toDate();
+    } else if (c.fechaISO) {
+      fechaObj = new Date(c.fechaISO);
+    }
+    
+    const fechaStr = fechaObj.toLocaleDateString('es-DO', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+    const total = c.total ? `RD$${c.total}` : 'N/A';
+    const desc = c.descripcion || 'Sin descripción';
+
+    return `
+      <div class="p-4 mb-3 bg-gray-50 dark:bg-gray-900/50 rounded-xl border border-gray-200 dark:border-gray-700 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 hover:bg-blue-50 dark:hover:bg-gray-700/60 transition-colors">
+        <div class="flex-grow">
+          <p class="font-bold text-lg text-blue-700 dark:text-blue-400">🎓 ${desc}</p>
+          <p class="text-sm text-gray-500 dark:text-gray-400">Guardada el ${fechaStr}</p>
+          <p class="text-md font-semibold text-gray-800 dark:text-gray-200 mt-1">Total: ${total}</p>
+        </div>
+        <div class="flex-shrink-0 flex gap-2 w-full md:w-auto">
+          <button onclick="cargarCotizacionGuardada('${c.id}')" class="flex-1 md:flex-none w-full py-2 px-4 rounded-lg font-semibold text-white bg-blue-600 hover:bg-blue-700 transition-all shadow-sm">📝 Cargar</button>
+          <button onclick="eliminarCotizacionGuardada('${c.id}')" class="flex-1 md:flex-none w-full py-2 px-4 rounded-lg font-semibold text-white bg-red-600 hover:bg-red-700 transition-all shadow-sm">🗑️ Borrar</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function cargarCotizacionGuardada(id) {
+  const tesis = todasLasCotizaciones.find(c => c.id === id);
+  if (tesis) {
+    aplicarDatosAlFormulario(tesis);
+    calcular(); // Recalcular para mostrar resultados
+    cerrarModalCotizaciones();
+    mostrarNotificacion('Tesis cargada correctamente', 'success');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+}
+
+async function eliminarCotizacionGuardada(id) {
+  if (confirm('¿Estás seguro de eliminar esta tesis guardada?')) {
+    try {
+      await db.ref("cotizaciones").child(id).remove();
+      todasLasCotizaciones = todasLasCotizaciones.filter(c => c.id !== id);
+      renderizarCotizacionesGuardadas();
+      mostrarNotificacion('Tesis eliminada', 'success');
+    } catch (error) {
+      console.error("Error eliminando:", error);
+      mostrarNotificacion('Error al eliminar', 'error');
+    }
+  }
+}
+
+// Exponer funciones al scope global para los botones onclick del HTML generado
+window.cargarCotizacionGuardada = cargarCotizacionGuardada;
+window.eliminarCotizacionGuardada = eliminarCotizacionGuardada;
+
+// ============================================
 // 🎬 INICIALIZACIÓN Y EVENTOS
 // ============================================
 
@@ -957,6 +1082,7 @@ function inicializar() {
   // Eventos de botones
   elementos.btnCalcular.addEventListener('click', calcular);
   elementos.btnGenerar.addEventListener('click', imprimir);
+  if (elementos.btnGuardarTesis) elementos.btnGuardarTesis.addEventListener('click', guardarTesisManual);
   elementos.btnCompartir.addEventListener('click', compartirPDFMovil);
   elementos.btnReiniciar.addEventListener('click', reiniciar);
 
@@ -964,6 +1090,18 @@ function inicializar() {
   if (elementos.btnMostrarTabla) {
     elementos.btnMostrarTabla.addEventListener('click', toggleTablaPrecios);
   }
+
+  // Eventos para ver guardadas
+  const btnVer = document.getElementById('btnVerGuardadas');
+  if (btnVer) btnVer.addEventListener('click', abrirModalCotizaciones);
+
+  const btnCerrar = document.getElementById('btnCerrarModal');
+  if (btnCerrar) btnCerrar.addEventListener('click', cerrarModalCotizaciones);
+
+  // Cerrar modal al hacer click fuera
+  document.getElementById('modalCotizacionesGuardadas')?.addEventListener('click', (e) => {
+    if (e.target.id === 'modalCotizacionesGuardadas') cerrarModalCotizaciones();
+  });
 
   // Listeners para persistencia en todos los inputs
   const inputs = document.querySelectorAll('input, select');
@@ -984,10 +1122,27 @@ if (document.readyState === 'loading') {
 }
 
 // ============================================
-// 💾 PERSISTENCIA (LOCALSTORAGE)
+// 🧪 HERRAMIENTA DE DIAGNÓSTICO (GLOBAL)
 // ============================================
+window.probarConexionFirebase = async function() {
+  console.group("🔥 Diagnóstico Tesis");
+  try {
+    console.log("Intentando escribir en 'cotizaciones'...");
+    const testRef = db.ref("cotizaciones/_test_connection");
+    await testRef.set({ status: "ok", timestamp: firebase.database.ServerValue.TIMESTAMP });
+    console.log("✅ Escritura exitosa.");
+    
+    await testRef.remove();
+    console.log("✅ Borrado exitoso.");
+    
+    alert("✅ Conexión a Firebase funcionando correctamente.");
+  } catch (e) {
+    console.error("❌ Error:", e);
+    alert("❌ Error de conexión: " + e.message);
+  }
+  console.groupEnd();
+};
 
-// Obtener objeto con todos los datos actuales del formulario
 function obtenerDatosFormulario() {
   return {
     tamano: document.getElementById('tamano')?.value,
@@ -1074,26 +1229,44 @@ function mostrarNotificacion(mensaje, tipo = 'success') {
 }
 
 // ============================================
-// ☁️ GOOGLE SHEETS API
+// ☁️ GUARDADO EN FIREBASE
 // ============================================
 
-function enviarAGoogleSheets(datos) {
-  if (GOOGLE_SCRIPT_URL === 'https://script.google.com/macros/s/AKfycbxHk5dI_qZeec9tlrl8mo4ubRre0mNrLrST-4Z-7pyqOhcnbupE201lJhORig4TAgrWbw/exec_AQUI' || !GOOGLE_SCRIPT_URL) {
-    console.warn('⚠️ Falta configurar la URL de Google Sheets en el script.');
+function guardarTesisManual() {
+  // 1. Recalcular para asegurar que los datos están frescos y son válidos
+  calcular(); 
+
+  // 2. Validar si el cálculo fue exitoso (datosParaGuardar se llena en calcular())
+  if (!datosParaGuardar) {
+    mostrarNotificacion("❌ Error: No se pudieron calcular los datos. Verifica el formulario.", "error");
     return;
   }
 
-  // Aseguramos que la acción sea 'guardar'
-  const payload = { action: 'guardar', ...datos };
+  // 3. Nombre por defecto (sin preguntar)
+  const nombre = "Cliente Tesis";
 
-  fetch(GOOGLE_SCRIPT_URL, {
-    method: 'POST',
-    mode: 'no-cors',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(payload)
-  })
-  .then(() => console.log('✅ Enviado a Google Sheets'))
-  .catch(err => console.error('❌ Error:', err));
+  // 4. Construir el objeto FINAL a enviar
+  const paqueteDeDatos = {
+    fecha: new Date().toISOString(),
+    timestamp: firebase.database.ServerValue.TIMESTAMP,
+    tipo: "Tesis",
+    nombre: nombre,
+    total: datosParaGuardar.total,
+    descripcion: datosParaGuardar.descripcion,
+    detalle_tecnico: datosParaGuardar.detalle,
+    inputs: obtenerDatosFormulario() // Guardamos también los inputs crudos por seguridad
+  };
+
+  console.log("🚀 Enviando Tesis a Firebase:", paqueteDeDatos);
+
+  // 5. Enviar a la base de datos
+  db.ref("cotizaciones").push(paqueteDeDatos)
+    .then((ref) => {
+      console.log("✅ Guardado con ID:", ref.key);
+      mostrarNotificacion(`✅ Tesis guardada correctamente`, "success");
+    })
+    .catch((error) => {
+      console.error("❌ Error:", error);
+      mostrarNotificacion("Error al guardar: " + error.message, "error");
+    });
 }

@@ -4,11 +4,26 @@
 let cotizacion = [];
 let todasLasCotizaciones = []; // Para guardar múltiples cotizaciones
 let idCotizacionActiva = null; // Para saber si estamos editando una cotización existente
+let nombreCotizacionActiva = ''; // Para recordar el nombre del cliente y que no se borre
 
 console.log('🚀 Script cargando...');
 
-// 🔗 URL DE TU API DE GOOGLE SHEETS (Pégala aquí abajo)
-const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxRUMlkInT_O_C6G_q15jb8mVqVcX9SOLwu9Tl9_ucgwsu1C-ZfoIJIqrCcROo5WwSJbQ/exec';
+// ============================================
+// 🔥 CONFIGURACIÓN DE FIREBASE (BASE DE DATOS)
+// ============================================
+const firebaseConfig = {
+  apiKey: "AIzaSyBgVrMPSwZg3O5zbuIozstpG0bM8XFEeZE",
+  authDomain: "servigaco.firebaseapp.com",
+  databaseURL: "https://servigaco-default-rtdb.firebaseio.com",
+  projectId: "servigaco",
+  storageBucket: "servigaco.firebasestorage.app",
+  messagingSenderId: "516579834487",
+  appId: "1:516579834487:web:e7fb1c46d93bb62a98a472"
+};
+
+// Inicializar Firebase
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
 
 document.addEventListener('DOMContentLoaded', () => {
   cargarDeLocalStorage(); // Carga la cotización en curso si la página se recarga
@@ -271,6 +286,8 @@ function limpiarCotizacion() {
   if (confirm(mensajeConfirmacion)) {
     cotizacion = [];
     idCotizacionActiva = null; // Desvincula de la cotización que se estaba editando
+    localStorage.removeItem('cotizacion_servigaco_id'); // Borrar ID de memoria
+    localStorage.removeItem('cotizacion_servigaco_nombre'); // Borrar nombre de memoria
     actualizarCotizacion();
     mostrarNotificacion('Cotización limpiada', 'success');
   }
@@ -287,11 +304,11 @@ function actualizarCotizacion() {
   const totalEl = document.getElementById('totalAmount');
   const comprobanteSection = document.getElementById('comprobanteSection');
   const cotizacionAcciones = document.getElementById('cotizacionAcciones');
+  const btnGuardar = document.getElementById('btnGuardarCotizacion');
+  const btnCambios = document.getElementById('btnGuardarCambios');
 
   // Guardar en LocalStorage cada vez que cambia
-  if (!idCotizacionActiva) {
-    guardarEnLocalStorage();
-  }
+  guardarEnLocalStorage();
 
   // Indicador de edición
   const headerH2 = document.querySelector('.cotizacion-header h2');
@@ -324,12 +341,20 @@ function actualizarCotizacion() {
 
   // Añadir indicador si se está editando
   if (idCotizacionActiva && headerH2) {
-    const cotizacionGuardada = todasLasCotizaciones.find(c => c.id === idCotizacionActiva);
-    const nombre = cotizacionGuardada ? cotizacionGuardada.nombre : '...';
+    const nombre = nombreCotizacionActiva || '...';
     const indicator = document.createElement('span');
     indicator.className = 'editing-indicator ml-4 text-sm font-normal bg-yellow-100 text-yellow-800 dark:bg-yellow-900/50 dark:text-yellow-300 px-3 py-1 rounded-full';
     indicator.textContent = `📝 Editando: ${nombre}`;
     headerH2.appendChild(indicator);
+  }
+
+  // Alternar botones según si estamos editando o creando
+  if (idCotizacionActiva) {
+    if (btnGuardar) btnGuardar.style.display = 'none';
+    if (btnCambios) btnCambios.style.display = 'flex';
+  } else {
+    if (btnGuardar) btnGuardar.style.display = 'flex';
+    if (btnCambios) btnCambios.style.display = 'none';
   }
 
   if (comprobanteSection) comprobanteSection.style.display = 'block';
@@ -826,8 +851,8 @@ function generarCotizacion() {
 
   txt += `\nTOTAL: RD$${(subtotal + imp).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}`;
   
-  // Guardar en Google Sheets
-  enviarAGoogleSheets({
+  // Guardar registro en Firebase
+  registrarLogVenta({
     tipo: 'General',
     total: (subtotal + imp).toFixed(2),
     detalle: cotizacion.map(i => `• ${i.cantidad}x ${i.nombre} - RD$${i.precio.toFixed(2)}`).join('\n')
@@ -982,6 +1007,9 @@ function inicializarEventListeners() {
   // --- NUEVOS EVENT LISTENERS PARA GESTIÓN DE COTIZACIONES ---
   const btnGuardar = document.getElementById('btnGuardarCotizacion');
   if (btnGuardar) btnGuardar.addEventListener('click', guardarCotizacionActual);
+
+  const btnCambios = document.getElementById('btnGuardarCambios');
+  if (btnCambios) btnCambios.addEventListener('click', guardarCambiosCotizacion);
 
   const btnVer = document.getElementById('btnVerGuardadas');
   if (btnVer) btnVer.addEventListener('click', abrirModalCotizaciones);
@@ -1384,15 +1412,21 @@ function imprimirCotizacion() {
   
   let impuesto = 0;
   let nombreImpuesto = '';
-  if (tipoComp === 'fiscal') { impuesto = subtotal * 0.18; nombreImpuesto = 'ITBIS (18%)'; }
-  else if (tipoComp === 'gubernamental') { impuesto = subtotal * 0.10; nombreImpuesto = 'ISR (10%)'; }
+  if (tipoComp === 'fiscal') { 
+    impuesto = subtotal * 0.18; 
+    nombreImpuesto = 'ITBIS (18%)'; 
+  } else if (tipoComp === 'gubernamental') { 
+    impuesto = subtotal * 0.10; 
+    nombreImpuesto = 'ISR (10%)'; 
+  }
+
   const total = subtotal + impuesto;
 
   // Preparamos los textos para asegurar compatibilidad
   const descripcionTexto = cotizacion.map(i => `${i.cantidad || 1}x ${i.nombre} ${i.descripcion ? '(' + i.descripcion + ')' : ''}`).join('\n');
-
-  // Guardar reporte de venta en Google Sheets (igual que en la calculadora de tesis)
-  enviarAGoogleSheets({
+  
+  // Guardar reporte de venta en Firebase
+  registrarLogVenta({
     tipo: 'General',
     total: total.toFixed(2),
     detalle: descripcionTexto
@@ -1552,6 +1586,9 @@ function imprimirCotizacion() {
 
 function guardarEnLocalStorage() {
   localStorage.setItem('cotizacion_servigaco', JSON.stringify(cotizacion));
+  // Guardamos también el ID para no perder la referencia si se recarga la página
+  if (idCotizacionActiva) localStorage.setItem('cotizacion_servigaco_id', idCotizacionActiva);
+  if (nombreCotizacionActiva) localStorage.setItem('cotizacion_servigaco_nombre', nombreCotizacionActiva);
 }
 
 function cargarDeLocalStorage() {
@@ -1564,80 +1601,116 @@ function cargarDeLocalStorage() {
       console.error('Error cargando cotización guardada', e);
     }
   }
+  // Recuperar el ID si existe
+  const idGuardado = localStorage.getItem('cotizacion_servigaco_id');
+  if (idGuardado) {
+    idCotizacionActiva = idGuardado;
+  }
+  const nombreGuardado = localStorage.getItem('cotizacion_servigaco_nombre');
+  if (nombreGuardado) {
+    nombreCotizacionActiva = nombreGuardado;
+  }
+  if (idGuardado || nombreGuardado) actualizarCotizacion();
 }
 
 // ============================================
-// ☁️ GESTIÓN CON GOOGLE SHEETS (NUEVO)
+// ☁️ GESTIÓN CON FIREBASE REALTIME DATABASE
 // ============================================
 
-async function guardarCotizacionActual() {
-  console.log("💾 Botón Guardar presionado. Iniciando proceso...");
+async function guardarCotizacionActual() { // ESTA FUNCIÓN AHORA SOLO CREA NUEVAS
+  // 1. Validar que haya items
   if (cotizacion.length === 0) {
-    mostrarNotificacion('No hay nada que guardar en la cotización', 'warning');
-    console.warn("⚠️ Intento de guardar cotización vacía.");
+    mostrarNotificacion("⚠️ La cotización está vacía. Agrega servicios primero.", "warning");
     return;
   }
 
-  const cotizacionGuardadaPrevia = idCotizacionActiva ? todasLasCotizaciones.find(c => c.id === idCotizacionActiva) : null;
-  const nombrePrevio = cotizacionGuardadaPrevia ? cotizacionGuardadaPrevia.nombre : '';
+  // 2. Usar el nombre activo o uno por defecto (SIN PREGUNTAR NADA)
+  const nombre = nombreCotizacionActiva || "Cliente General";
 
-  const nombreCliente = prompt('Introduce un nombre o referencia para esta cotización (ej: "Cliente Juan" o "Tesis UCE"):', nombrePrevio);
+  // 3. Calcular Totales
+  const subtotal = cotizacion.reduce((sum, item) => sum + item.precio, 0);
+  const tipoComp = document.getElementById('tipoComprobante')?.value || 'ninguno';
+  let impuesto = 0;
+  if (tipoComp === 'fiscal') impuesto = subtotal * 0.18;
+  else if (tipoComp === 'gubernamental') impuesto = subtotal * 0.10;
+  const total = subtotal + impuesto;
 
-  if (nombreCliente === null) { // El usuario presionó "Cancelar"
-    console.log("ℹ️ Guardado cancelado por el usuario.");
-    return;
-  }
+  // 4. Generar Descripción Detallada (SOLUCIÓN "NO LOS DETALLES")
+  // Crea un texto como: "50x Impresión B/N, 2x Encuadernado Espiral"
+  const detallesTexto = cotizacion.map(item => `${item.cantidad}x ${item.nombre}`).join(', ');
+  const descripcionFinal = detallesTexto.length > 100 ? detallesTexto.substring(0, 97) + '...' : detallesTexto;
 
-  if (!nombreCliente.trim()) {
-    mostrarNotificacion('El nombre es obligatorio para guardar la cotización', 'error');
-    return;
-  }
-
-  // Preparamos los textos para asegurar compatibilidad con las columnas de Sheets
-  const descripcionTexto = cotizacion.map(i => `${i.cantidad}x ${i.nombre} ${i.descripcion ? '(' + i.descripcion + ')' : ''}`).join('\n');
-  const servicioTexto = cotizacion.map(i => `${i.cantidad}x ${i.nombre}`).join(', ');
-  const totalTexto = cotizacion.reduce((sum, item) => sum + item.precio, 0).toFixed(2);
-
-  const nuevaData = {
-    id: idCotizacionActiva || `cot-${Date.now()}`,
-    nombre: nombreCliente,
-    fecha: new Date().toLocaleString('es-DO'),
-    items: cotizacion,
-    total: totalTexto,
-    tipo: 'General',
-    detalle: descripcionTexto
+  // 5. Construir Objeto
+  const paqueteDeDatos = {
+    fecha: new Date().toISOString(),
+    timestamp: firebase.database.ServerValue.TIMESTAMP,
+    tipo: "General",
+    nombre: nombre,
+    total: total.toFixed(2),
+    descripcion: descripcionFinal, // Ahora guarda los detalles reales
+    items: cotizacion
   };
 
-  mostrarNotificacion('Guardando en la nube...', 'info');
-  console.log("📦 Datos preparados para enviar:", nuevaData);
+  console.log("🚀 Enviando General a Firebase:", paqueteDeDatos);
 
+  // 6. Enviar
   try {
-    enviarAGoogleSheets(nuevaData);
-    
-    // Actualización optimista local
-  if (idCotizacionActiva) {
-    const index = todasLasCotizaciones.findIndex(c => c.id === idCotizacionActiva);
-    if (index !== -1) todasLasCotizaciones[index] = nuevaData;
-  } else {
-    todasLasCotizaciones.unshift(nuevaData);
-    idCotizacionActiva = nuevaData.id;
-  }
-
-    mostrarNotificacion('¡Guardado exitoso en Google Sheets!', 'success');
-  actualizarCotizacion(); // Para reflejar el estado "Editando: ..."
-
+    // CREAMOS un registro nuevo siempre
+    const newRef = await db.ref("cotizaciones").push(paqueteDeDatos);
+    idCotizacionActiva = newRef.key; // Pasamos a modo edición de la nueva cotización
+    nombreCotizacionActiva = nombre;
+    guardarEnLocalStorage(); // Guardamos el nuevo ID inmediatamente
+    actualizarCotizacion(); // Actualiza la UI (esto ocultará "Guardar" y mostrará "Guardar Cambios")
+    mostrarNotificacion(`✅ Cotización guardada`, "success");
   } catch (error) {
-    console.error("❌ Error CRÍTICO al guardar:", error);
-    mostrarNotificacion('Error al guardar en la nube. Intente de nuevo.', 'error');
+    console.error("❌ Error:", error);
+    mostrarNotificacion("Error al guardar: " + error.message, "error");
   }
 }
 
+async function guardarCambiosCotizacion() { // NUEVA FUNCIÓN SOLO PARA EDITAR
+  if (!idCotizacionActiva) {
+    mostrarNotificacion("⚠️ No hay una cotización activa para editar.", "error");
+    return;
+  }
+
+  const nombre = nombreCotizacionActiva || "Cliente General";
+  const subtotal = cotizacion.reduce((sum, item) => sum + item.precio, 0);
+  const tipoComp = document.getElementById('tipoComprobante')?.value || 'ninguno';
+  let impuesto = 0;
+  if (tipoComp === 'fiscal') impuesto = subtotal * 0.18;
+  else if (tipoComp === 'gubernamental') impuesto = subtotal * 0.10;
+  const total = subtotal + impuesto;
+
+  const detallesTexto = cotizacion.map(item => `${item.cantidad}x ${item.nombre}`).join(', ');
+  const descripcionFinal = detallesTexto.length > 100 ? detallesTexto.substring(0, 97) + '...' : detallesTexto;
+
+  const paqueteDeDatos = {
+    fecha: new Date().toISOString(), // Actualizamos fecha de modificación
+    // No sobrescribimos timestamp original si no queremos, o usamos uno de 'updatedAt'
+    tipo: "General",
+    nombre: nombre,
+    total: total.toFixed(2),
+    descripcion: descripcionFinal,
+    items: cotizacion
+  };
+
+  try {
+    await db.ref("cotizaciones").child(idCotizacionActiva).update(paqueteDeDatos);
+    mostrarNotificacion(`✅ Cambios guardados correctamente`, "success");
+  } catch (error) {
+    console.error("❌ Error actualizando:", error);
+    mostrarNotificacion("Error al actualizar: " + error.message, "error");
+  }
+}
 
 function cargarCotizacionGuardada(id) {
   const cotizacionGuardada = todasLasCotizaciones.find(c => c.id === id);
   if (cotizacionGuardada) {
     idCotizacionActiva = id;
-    cotizacion = JSON.parse(JSON.stringify(cotizacionGuardada.items)); // Copia profunda
+    nombreCotizacionActiva = cotizacionGuardada.nombre || "Cliente General";
+    // Asegurar que items sea un array (Firebase puede devolver objeto si las claves son numéricas pero discontinuas, aunque push usa array)
+    cotizacion = cotizacionGuardada.items ? Object.values(cotizacionGuardada.items) : [];
     actualizarCotizacion();
     cerrarModalCotizaciones();
     mostrarNotificacion(`Cotización "${cotizacionGuardada.nombre}" cargada para edición`, 'success');
@@ -1654,15 +1727,21 @@ async function eliminarCotizacionGuardada(id) {
     if (confirm(`¿Estás seguro de que quieres eliminar permanentemente la cotización "${nombre}"?`)) {
       
       mostrarNotificacion('Eliminando...', 'info');
-      enviarAGoogleSheets({ id: id }, 'borrar');
       
-      todasLasCotizaciones.splice(index, 1);
-      renderizarCotizacionesGuardadas(); // Actualiza la vista del modal
-      mostrarNotificacion('Cotización eliminada de la nube', 'success');
+      try {
+        await db.ref("cotizaciones").child(id).remove();
+        
+        todasLasCotizaciones.splice(index, 1);
+        renderizarCotizacionesGuardadas(); // Actualiza la vista del modal
+        mostrarNotificacion('Cotización eliminada de la base de datos', 'success');
 
-      // Si la cotización eliminada era la que se estaba editando, limpiar el editor
-      if (idCotizacionActiva === id) {
-        limpiarCotizacion();
+        // Si la cotización eliminada era la que se estaba editando, limpiar el editor
+        if (idCotizacionActiva === id) {
+          limpiarCotizacion();
+        }
+      } catch (error) {
+        console.error("Error eliminando:", error);
+        mostrarNotificacion('Error al eliminar.', 'error');
       }
     }
   }
@@ -1683,17 +1762,33 @@ function renderizarCotizacionesGuardadas() {
   }
 
   container.innerHTML = todasLasCotizaciones.map(c => {
-    const fecha = new Date(c.fecha).toLocaleDateString('es-DO', { year: 'numeric', month: 'long', day: 'numeric' });
+    // Manejo robusto de fechas (Firebase Timestamp o String ISO)
+    let fechaObj = new Date();
+    if (c.timestamp && c.timestamp.toDate) {
+      fechaObj = c.timestamp.toDate();
+    } else if (c.fecha) {
+      fechaObj = new Date(c.fecha);
+    }
+    
+    const fechaStr = fechaObj.toLocaleDateString('es-DO', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
     const total = Number(c.total || 0).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    
+    // Diferenciar visualmente entre Tesis y General
+    const esTesis = c.tipo === 'Tesis';
+    const icono = esTesis ? '🎓' : '📄';
+    const descripcion = esTesis 
+      ? `Tesis: ${c.descripcion || 'Sin detalle'}` 
+      : `${c.items ? c.items.length : 0} servicio(s)`;
+
     return `
       <div class="p-4 mb-3 bg-gray-50 dark:bg-gray-900/50 rounded-xl border border-gray-200 dark:border-gray-700 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 hover:bg-blue-50 dark:hover:bg-gray-700/60 transition-colors">
         <div class="flex-grow">
-          <p class="font-bold text-lg text-blue-700 dark:text-blue-400">${c.nombre}</p>
-          <p class="text-sm text-gray-500 dark:text-gray-400">Guardada el ${fecha} - ${c.items.length} servicio(s)</p>
+          <p class="font-bold text-lg text-blue-700 dark:text-blue-400">${icono} ${c.nombre}</p>
+          <p class="text-sm text-gray-500 dark:text-gray-400">Guardada el ${fechaStr} - ${descripcion}</p>
           <p class="text-md font-semibold text-gray-800 dark:text-gray-200 mt-1">Total: RD$${total}</p>
         </div>
         <div class="flex-shrink-0 flex gap-2 w-full md:w-auto">
-          <button onclick="cargarCotizacionGuardada('${c.id}')" class="flex-1 md:flex-none w-full py-2 px-4 rounded-lg font-semibold text-white bg-blue-600 hover:bg-blue-700 transition-all shadow-sm">📝 Editar</button>
+          ${!esTesis ? `<button onclick="cargarCotizacionGuardada('${c.id}')" class="flex-1 md:flex-none w-full py-2 px-4 rounded-lg font-semibold text-white bg-blue-600 hover:bg-blue-700 transition-all shadow-sm">📝 Editar</button>` : ''}
           <button onclick="eliminarCotizacionGuardada('${c.id}')" class="flex-1 md:flex-none w-full py-2 px-4 rounded-lg font-semibold text-white bg-red-600 hover:bg-red-700 transition-all shadow-sm">🗑️ Borrar</button>
         </div>
       </div>
@@ -1703,23 +1798,32 @@ function renderizarCotizacionesGuardadas() {
 
 async function abrirModalCotizaciones() {
   const container = document.getElementById('listaCotizacionesGuardadas');
-  if (container) container.innerHTML = '<div class="text-center py-10"><p class="text-xl animate-pulse">☁️ Cargando desde Google Sheets...</p></div>';
+  if (container) container.innerHTML = '<div class="text-center py-10"><p class="text-xl animate-pulse">🔥 Cargando desde Base de Datos...</p></div>';
   
   document.getElementById('modalCotizacionesGuardadas')?.classList.remove('hidden');
   document.body.style.overflow = 'hidden';
 
   try {
-    // Cargar datos frescos de la nube
-    // const respuesta = await peticionGoogleSheets('listar');
-    const respuesta = []; // Deshabilitado temporalmente para evitar errores de CORS
-    if (Array.isArray(respuesta)) {
-      // 🔍 FILTRO: Solo mostramos las que sean de tipo 'General'
-      todasLasCotizaciones = respuesta.filter(c => c.tipo === 'General');
+    // Cargar datos frescos de Firebase
+    const snapshot = await db.ref("cotizaciones").once("value");
+    const data = snapshot.val();
+
+    if (data) {
+      todasLasCotizaciones = Object.keys(data).map(key => ({
+        id: key,
+        ...data[key]
+      })).sort((a, b) => {
+        // Ordenar descendente por fecha
+        return new Date(b.fecha || b.fechaISO) - new Date(a.fecha || a.fechaISO);
+      });
+    } else {
+      todasLasCotizaciones = [];
     }
+
     renderizarCotizacionesGuardadas();
   } catch (error) {
-    console.error(error);
-    if (container) container.innerHTML = '<p class="text-center text-red-500 py-8">Error al cargar las cotizaciones. Verifique su conexión.</p>';
+    console.error("Error cargando cotizaciones:", error);
+    if (container) container.innerHTML = '<p class="text-center text-red-500 py-8">Error al cargar las cotizaciones.</p>';
   }
 }
 
@@ -1794,24 +1898,23 @@ function mostrarNotificacion(mensaje, tipo = 'success') {
 }
 
 // ============================================
-// ☁️ GOOGLE SHEETS API
+// ☁️ FIREBASE DATABASE LOGS
 // ============================================
 
-function enviarAGoogleSheets(datos, accion = 'guardar') {
-  // Preparamos el payload con la acción
-  const payload = { action: accion, ...datos };
-
-  // Envío directo
-  fetch(GOOGLE_SCRIPT_URL, {
-    method: 'POST',
-    mode: 'no-cors',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(payload)
-  })
-    .then(() => console.log(`✅ Acción '${accion}' enviada a Sheets (sin confirmación)`))
-    .catch(err => console.error(`❌ Error enviando '${accion}' a Sheets:`, err));
+function registrarLogVenta(datos, accion = 'guardar') {
+  // Esta función se mantiene solo para el log de ventas al imprimir (si se desea)
+  // O se puede redirigir a una colección 'ventas' en Firebase
+  
+  try {
+    db.ref("ventas_log").push({
+      ...datos,
+      accion: accion,
+      timestamp: firebase.database.ServerValue.TIMESTAMP
+    });
+    console.log(`✅ Registro de venta guardado en Firebase`);
+  } catch (e) {
+    console.error("Error guardando log de venta:", e);
+  }
 }
 
 // ============================================
@@ -1825,5 +1928,42 @@ document.addEventListener('DOMContentLoaded', () => {
   inicializarPrecioTiempoReal(); // ← Agregado
   const btnGenPDF = document.getElementById('generarPDF'); // Botón grande
   if (btnGenPDF) btnGenPDF.addEventListener('click', imprimirCotizacion);
-  console.log('✅ Script inicializado');
+
+  console.log('✅ Script inicializado. Escribe "probarConexionFirebase()" en la consola para verificar.');
 });
+
+// ============================================
+// 🧪 HERRAMIENTA DE DIAGNÓSTICO (GLOBAL)
+// ============================================
+window.probarConexionFirebase = async function() {
+  console.clear();
+  console.group("🕵️ Diagnóstico de Conexión Firebase");
+  console.log("1. Verificando URL:", firebaseConfig.databaseURL);
+  
+  try {
+    const testRef = db.ref(".info/connected");
+    console.log("2. Verificando estado de conexión...");
+    const snap = await testRef.once("value");
+    
+    if (snap.val() === true) {
+      console.log("   ✅ Cliente conectado al servidor.");
+    } else {
+      console.warn("   ⚠️ Cliente desconectado (posiblemente offline).");
+    }
+
+    console.log("3. Intentando escribir dato de prueba...");
+    const writeRef = db.ref("_diagnostico_" + Date.now());
+    await writeRef.set({ prueba: "exitosa", fecha: new Date().toISOString() });
+    console.log("   ✅ Escritura exitosa en Realtime Database.");
+
+    console.log("4. Limpiando dato de prueba...");
+    await writeRef.remove();
+    console.log("   ✅ Borrado exitoso.");
+
+    alert("✅ CONEXIÓN EXITOSA\n\nTu calculadora está conectada correctamente a Firebase Realtime Database.");
+  } catch (e) {
+    console.error("❌ FALLO:", e);
+    alert("❌ ERROR DE CONEXIÓN: " + e.message);
+  }
+  console.groupEnd();
+};

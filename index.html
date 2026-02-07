@@ -51,8 +51,12 @@
       </figure>
 
       <!-- Título principal -->
-      <header>
+      <header class="flex flex-col md:flex-row justify-between items-center gap-4 mb-6">
         <h1>Calculadora de Tesis</h1>
+        <button type="button" id="btnVerGuardadas" class="py-2 px-5 rounded-xl font-bold text-white bg-gradient-to-r from-teal-500 to-teal-700 hover:from-teal-400 hover:to-teal-600 shadow-md transform transition-all duration-200 hover:-translate-y-1 flex items-center gap-2 text-sm">
+          <span class="text-lg">📂</span>
+          Ver Guardadas
+        </button>
       </header>
 
       <!-- Formulario de cotización -->
@@ -243,6 +247,11 @@
             Calcular Total
           </button>
 
+          <button type="button" id="btnGuardarTesis" class="w-full py-3 px-6 rounded-xl font-bold text-white bg-gradient-to-r from-indigo-500 via-indigo-600 to-indigo-700 hover:from-indigo-400 hover:to-indigo-600 shadow-lg shadow-indigo-500/40 transform transition-all duration-200 hover:-translate-y-1 flex items-center justify-center gap-2">
+            <span class="text-xl">💾</span>
+            Guardar en Nube
+          </button>
+
           <button type="button" id="btnGenerar" class="w-full py-3 px-6 rounded-xl font-bold text-white bg-gradient-to-r from-emerald-600 via-emerald-700 to-emerald-800 hover:from-emerald-500 hover:to-emerald-700 shadow-lg shadow-emerald-500/40 transform transition-all duration-200 hover:-translate-y-1 flex items-center justify-center gap-2">
             <span class="text-xl">🖨️</span>
             Imprimir
@@ -398,7 +407,40 @@
 
   </main>
 
+  <!-- ========================================
+       📂 MODAL PARA COTIZACIONES GUARDADAS
+       ======================================== -->
+  <div id="modalCotizacionesGuardadas" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-50 hidden animate-fade-in">
+    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col animate-slide-in-up m-4">
+      <!-- Header del Modal -->
+      <div class="p-6 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center flex-shrink-0">
+        <h3 class="text-2xl font-bold text-gray-800 dark:text-gray-100 flex items-center gap-3">
+          <span class="text-3xl">📂</span>
+          Tesis Guardadas
+        </h3>
+        <button id="btnCerrarModal" class="p-2 rounded-full text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-800 dark:hover:text-gray-200 transition-all" aria-label="Cerrar modal">
+          <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+      </div>
+      <!-- Contenido del Modal (lista) -->
+      <div class="p-2 md:p-6 overflow-y-auto" id="listaCotizacionesGuardadas">
+        <!-- La lista de cotizaciones se generará aquí con JavaScript -->
+      </div>
+    </div>
+  </div>
+
+  <style>
+    @keyframes animate-fade-in { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes animate-slide-in-up { from { transform: translateY(20px); opacity: 0.8; } to { transform: translateY(0); opacity: 1; } }
+    .animate-fade-in { animation: animate-fade-in 0.3s ease-out forwards; }
+    .animate-slide-in-up { animation: animate-slide-in-up 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+  </style>
+
   <!-- SCRIPTS -->
+  <!-- 🔥 FIREBASE SDK (Base de Datos) -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+
   <script src="components.js"></script>
   <script src="script.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>

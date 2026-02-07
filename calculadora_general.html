@@ -28,6 +28,88 @@
   <!-- FAVICON -->
   <link rel="icon" type="image/png" sizes="32x32" href="assets/icono.png" />
   <link rel="shortcut icon" href="assets/icono.png" />
+
+  <style>
+    /* ANIMACIONES MODAL */
+    @keyframes animate-fade-in { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes animate-slide-in-up { from { transform: translateY(20px); opacity: 0.8; } to { transform: translateY(0); opacity: 1; } }
+    .animate-fade-in { animation: animate-fade-in 0.3s ease-out forwards; }
+    .animate-slide-in-up { animation: animate-slide-in-up 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+
+    /* BOTÓN FLOTANTE */
+    .btn-admin-precios {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: #6c63ff;
+      color: #fff;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 30px;
+      font-weight: bold;
+      cursor: pointer;
+      z-index: 9999;
+    }
+
+    /* FONDO MODAL */
+    .modal-precios {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.7);
+      z-index: 10000;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modal-precios.show {
+      display: flex;
+    }
+
+    /* CONTENIDO */
+    .modal-precios-content {
+      background: #fff;
+      width: 95%;
+      max-width: 1100px;
+      max-height: 90vh;
+      border-radius: 12px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .modal-precios-header {
+      background: #6c63ff;
+      color: white;
+      padding: 16px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .modal-precios-body {
+      padding: 20px;
+      overflow-y: auto;
+      flex: 1;
+    }
+
+    .modal-precios-footer {
+      padding: 12px;
+      background: #f4f4f4;
+      text-align: center;
+    }
+
+    .btn-cerrar-modal {
+      background: transparent;
+      border: 2px solid white;
+      color: white;
+      border-radius: 50%;
+      width: 34px;
+      height: 34px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+  </style>
 </head>
 
 <body>
@@ -161,6 +243,10 @@
           <button type="button" id="btnGuardarCotizacion" class="flex-1 py-3 px-6 rounded-xl font-bold text-white bg-gradient-to-r from-indigo-500 to-indigo-700 hover:from-indigo-400 hover:to-indigo-600 shadow-lg shadow-indigo-500/30 transform transition-all duration-200 hover:-translate-y-1 flex items-center justify-center gap-2" title="Guardar la cotización actual para editarla en el futuro">
             <span class="text-xl">💾</span>
             Guardar
+          </button>
+          <button type="button" id="btnGuardarCambios" class="flex-1 py-3 px-6 rounded-xl font-bold text-white bg-gradient-to-r from-purple-600 to-purple-800 hover:from-purple-500 hover:to-purple-700 shadow-lg shadow-purple-500/30 transform transition-all duration-200 hover:-translate-y-1 flex items-center justify-center gap-2" style="display: none;" title="Actualizar la cotización existente">
+            <span class="text-xl">📝</span>
+            Guardar Cambios
           </button>
         </div>
       </div>
@@ -839,97 +925,14 @@
     </div>
   </div>
 
-  <!-- Estilos para las animaciones del modal -->
-  <style>
-    @keyframes animate-fade-in { from { opacity: 0; } to { opacity: 1; } }
-    @keyframes animate-slide-in-up { from { transform: translateY(20px); opacity: 0.8; } to { transform: translateY(0); opacity: 1; } }
-    .animate-fade-in { animation: animate-fade-in 0.3s ease-out forwards; }
-    .animate-slide-in-up { animation: animate-slide-in-up 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-  </style>
-
-
-
-  <style>
-  /* BOTÓN FLOTANTE */
-  .btn-admin-precios {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    background: #6c63ff;
-    color: #fff;
-    border: none;
-    padding: 12px 20px;
-    border-radius: 30px;
-    font-weight: bold;
-    cursor: pointer;
-    z-index: 9999;
-  }
-
-  /* FONDO MODAL */
-  .modal-precios {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.7);
-    z-index: 10000;
-    justify-content: center;
-    align-items: center;
-  }
-
-  .modal-precios.show {
-    display: flex;
-  }
-
-  /* CONTENIDO */
-  .modal-precios-content {
-    background: #fff;
-    width: 95%;
-    max-width: 1100px;
-    max-height: 90vh;
-    border-radius: 12px;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-  }
-
-  .modal-precios-header {
-    background: #6c63ff;
-    color: white;
-    padding: 16px 20px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-
-  .modal-precios-body {
-    padding: 20px;
-    overflow-y: auto;
-    flex: 1;
-  }
-
-  .modal-precios-footer {
-    padding: 12px;
-    background: #f4f4f4;
-    text-align: center;
-  }
-
-  .btn-cerrar-modal {
-    background: transparent;
-    border: 2px solid white;
-    color: white;
-    border-radius: 50%;
-    width: 34px;
-    height: 34px;
-    cursor: pointer;
-    font-size: 16px;
-  }
-</style>
-
-
   <!-- Scripts para PDF -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+  <!-- 🔥 FIREBASE SDK (Base de Datos) -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
 
   <script src="components.js"></script>
   <script src="scriptgeneral.js"></script>
